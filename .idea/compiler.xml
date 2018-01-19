@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="business-api" />
+        <module name="business-biz" />
+        <module name="business-biz (1)" />
+        <module name="business-client" />
+        <module name="common" />
+        <module name="dic-api" />
+        <module name="dic-biz" />
+        <module name="dic-client" />
+        <module name="order-api" />
+        <module name="order-biz" />
+        <module name="order-client" />
+        <module name="system-api" />
+        <module name="system-api (1)" />
+        <module name="system-api (2)" />
+        <module name="system-api (3)" />
+        <module name="system-api (4)" />
+        <module name="system-api (5)" />
+        <module name="system-biz" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="1.8">
+      <module name="business-api" target="1.8" />
+      <module name="business-biz" target="1.8" />
+      <module name="business-biz (1)" target="1.5" />
+      <module name="business-client" target="1.8" />
+      <module name="common" target="1.8" />
+      <module name="dic-api" target="1.8" />
+      <module name="dic-biz" target="1.8" />
+      <module name="dic-client" target="1.8" />
+      <module name="health-system" target="1.8" />
+      <module name="order-api" target="1.8" />
+      <module name="order-biz" target="1.8" />
+      <module name="order-client" target="1.8" />
+      <module name="system" target="1.5" />
+      <module name="system-api" target="1.5" />
+      <module name="system-api (1)" target="1.5" />
+      <module name="system-api (2)" target="1.5" />
+      <module name="system-api (3)" target="1.5" />
+      <module name="system-api (4)" target="1.5" />
+      <module name="system-api (5)" target="1.5" />
+      <module name="system-biz" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

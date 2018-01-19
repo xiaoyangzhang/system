@@ -1,0 +1,224 @@
+package com.yhyt.health.service.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.yhyt.health.HealthConstants;
+import com.yhyt.health.config.PathConfiguration;
+import com.yhyt.health.dao.BaseDao;
+import com.yhyt.health.dao.OrderDetailMapper;
+import com.yhyt.health.dao.OrderMapper;
+import com.yhyt.health.dao.PayDetailMapper;
+import com.yhyt.health.model.Order;
+import com.yhyt.health.model.OrderDetail;
+import com.yhyt.health.model.PayDetail;
+import com.yhyt.health.model.SysServiceTask;
+import com.yhyt.health.service.PayService;
+import com.yhyt.health.spring.AppResult;
+import com.yhyt.health.util.BusinessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
+import javax.annotation.Resource;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class PayServiceImpl extends BaseServiceImpl<PayDetail> implements PayService{
+	private static Logger logger = LoggerFactory.getLogger(PayServiceImpl.class);
+	
+//	@Autowired
+//	private PayService payService;
+	
+	@Autowired
+	private PayDetailMapper payDetailMapper;
+	
+	@Autowired
+	private OrderMapper orderMapper;
+	@Resource(name = "loadBalanced")
+	private RestTemplate restTemplate;
+	@Autowired
+	private PathConfiguration pathConfiguration;
+	@Autowired
+	private OrderDetailMapper orderDetailMapper;
+	@Value("${weixinpay.certPath}")
+	private String certPath;
+
+	public  String getCertPath() {
+		return certPath;
+	}
+
+	@Autowired
+	private RefundServiceImpl refundService;
+	@Override
+	public BaseDao<PayDetail> getBaseDao() {
+		return payDetailMapper;
+	}
+	
+	@Transactional(propagation=Propagation.NOT_SUPPORTED)
+	@Override
+	public PayDetail edit(PayDetail persistable) {
+		if(persistable.getCareateTime()==null){
+			persistable.setCareateTime(new Date());
+		}
+		if(persistable.getUpdateTime()==null){
+			persistable.setUpdateTime(new Date());
+		}
+		return super.edit(persistable);
+	}
+	
+	@Transactional(isolation=Isolation.READ_COMMITTED)
+	@Override
+	public void refund(Order order1) throws Exception {
+		long startTime = System.currentTimeMillis();
+		logger.info("退款开始----------》，startTime={}",startTime);
+		Order order = new Order();
+		order = this.orderMapper.selectByPrimaryKey(order1.getId());
+		logger.info("退款前订单数据，order:{}",JSON.toJSONString(order));
+		try {
+			SysServiceTask serviceTask = restTemplate.getForObject(pathConfiguration.getSystemUrl() + "/task/order/" + order1.getId(), SysServiceTask.class);
+			if (serviceTask==null){
+                logger.error("订单对应的任务未找到------->");
+            }else {
+                if(serviceTask.getDoctorState()==2 || serviceTask.getDoctorState()==3){
+                    logger.error("医生处理中的任务，不能退款，serviceTask：{}",JSON.toJSONString(serviceTask));
+                    throw new BusinessException(HealthConstants.ITEM_STATE_EXCEPTION,"商品使用中，不能退款");
+                }
+
+            }
+		} catch (RestClientException e) {
+			logger.error("根据订单 id查询任务失败，error:{}",e);
+		}
+		if(2!=order.getState()){
+			//TODO 已经发起过退款
+			logger.error("订单非已支付状态，order:{}",JSON.toJSONString(order));
+			throw new BusinessException(HealthConstants.EXCEPTION_OUTINTEFACE,"订单未支付成功");
+		}
+		Map<String,Object> params = new HashMap<String,Object>();
+		params.put("state", 2);
+		params.put("id", order1.getId());
+		params.put("remainCount", 0);
+		order.setState((byte) 4);
+		order.setUpdateTime(new Date());
+		order.setRefundMsg(order1.getRefundMsg());
+		order.setRefundClient(order1.getRefundClient());
+		int i = this.orderMapper.updateAndCheck(order, params);
+		if(i>0){
+			params.clear();
+			params.put("type", 1);
+			params.put("orderId", order1.getId());
+			OrderDetail orderDetail = new OrderDetail();
+			orderDetail.setType((byte) 4);
+			int count = this.orderDetailMapper.updateAndCheck(orderDetail, params);
+			params.remove("type");
+			List<OrderDetail> detailList = this.orderDetailMapper.findPersistableList(params);
+			if(detailList.size()!=count){
+				throw new BusinessException(HealthConstants.EXCEPTION_PARAMERROR,"已有服务卡被使用");
+			}
+			params.clear();
+			if(order.getPayType()==1){
+				params.put("channel", "alipay");
+			}else{
+				params.put("channel", "weixinpay");
+			}
+			params.put("state", 2);
+			params.put("payorderId", order.getOrderNo().replaceAll("\\.", ""));
+			List<PayDetail> payList = this.payDetailMapper.findPersistableList(params);
+			logger.info("支付详情，result:{}",JSON.toJSONString(payList));
+			if(payList==null||payList.size()==0){
+				throw new BusinessException(HealthConstants.EXCEPTION_PARAMERROR,"订单异常,无法退款");
+			}
+			AppResult  result = null;
+			// 微信支付app返回 日志记录
+			PayDetail payDetail = new PayDetail();
+			payDetail.setOrderid(payList.get(0).getOrderid());
+			payDetail.setPayorderid(payList.get(0).getPayorderid());
+			payDetail.setMoney(order.getPrice());
+			payDetail.setState(7);//已受理退款
+			payDetail.setTranceid(payList.get(0).getTranceid());
+			payDetail.setSend(params.toString());
+			try {
+				if(order.getPayType()==1){
+                    payDetail.setChannel("alipay");
+                    edit(payDetail);
+                    result = refundService.alipayRefund(payList.get(0));
+                }
+				if(order.getPayType()==2){
+                    payDetail.setChannel("weixinpay");
+                    edit(payDetail);
+                    result = refundService.weixinRefund(payList.get(0));
+                }
+			} catch (Exception e) {
+				e.printStackTrace();
+				logger.error("退款失败，error:{}",e);
+//				RollBackOrder(payDetail);
+
+
+			}
+//			if(result!=null&&HealthConstants.REQUEST_SuccessCode.equals(result.getStatus().getCode())){
+				payDetail.setId(null);
+				payDetail.setState(4);//退款成功
+				payDetail.setSend("");
+				edit(payDetail);
+//			}else{
+//				payDetail.setId(null);
+//				payDetail.setParams(result.getMsg());
+//				payDetail.setState(6);//退款失败
+//				payDetail.setSend("");
+//				this.payService.edit(payDetail);
+//				throw new BusinessException(HealthConstants.EXCEPTION_OUTINTEFACE,result.getMsg());
+//			}
+		}
+		//修改任务状态
+		AppResult appResult = restTemplate.patchForObject(pathConfiguration.getSystemUrl() +
+						"/task/state/update?id={0}&orderId={1}&state={2}&content={3}&action={4}&operator={5}", null, AppResult.class,
+				null, order1.getId(), 5, null, "refund", null);
+		logger.info("手机退款修改任务状态，result:{}",JSON.toJSONString(appResult));
+		long endTime = System.currentTimeMillis();
+		logger.info("退款结束----------》，endTime={}",endTime-startTime);
+	}
+
+	@Override
+	@Transactional
+	public AppResult updatePayDetail(PayDetail payDetail) {
+		AppResult result = new AppResult();
+		HashMap<String, Object> params = new HashMap<>();
+		params.put("payorderId", payDetail.getOrderid().replaceAll("\\.", ""));
+		params.put("state",2);
+		List<PayDetail> payList = this.payDetailMapper.findPersistableList(params);
+		params.put("orderNo",payDetail.getOrderid());
+		List<Order> orders = orderMapper.getOrder(params);
+
+		logger.info("微信支付回调，订单查询，orders:{}",JSON.toJSONString(orders));
+		if (!CollectionUtils.isEmpty(orders)){
+			logger.info("回调更新订单状态和支付流水。。。。。。。。");
+			for (Order o:orders){
+				if (4==o.getState()||7==o.getState()){
+					return result;
+				}
+			}
+			Order order = orders.get(0);
+			order.setPayTime(new Date());
+			order.setPayType((byte) 2);
+			order.setState((byte) 2);
+			order.setUpdateTime(new Date());
+			orderMapper.updateOrderStateByOrderNo(order);
+			//如果 state=2（已支付）有记录，不需要更新
+		if (CollectionUtils.isEmpty(payList)){
+			 payDetailMapper.updatePayDetail(payDetail);
+		}
+		}
+			result.setCode("SUCCESS");
+		return result;
+	}
+
+}

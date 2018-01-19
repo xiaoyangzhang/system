@@ -1,0 +1,18 @@
+package com.yhyt.health.service.api;
+
+import com.yhyt.health.spring.AppResult;
+
+/**
+ * @author gsh
+ * @create 2018-01-02 13:56
+ **/
+public interface ItemApi {
+
+    AppResult getItems(Long departmentId,String doctorState);
+
+    AppResult getItem(Long taskId);
+
+    AppResult updateItemState(Long taskId, String doctorState);
+
+    AppResult genTaskService(Long itemId,Long orderId);
+}

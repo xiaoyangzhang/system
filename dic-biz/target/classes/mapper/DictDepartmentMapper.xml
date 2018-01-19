@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.DictDepartmentMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.DictDepartment">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="parent_code" jdbcType="INTEGER" property="parentCode" />
+    <result column="parent_name" jdbcType="VARCHAR" property="parentName" />
+    <result column="child_code" jdbcType="INTEGER" property="childCode" />
+    <result column="child_name" jdbcType="VARCHAR" property="childName" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, parent_code, parent_name, child_code, child_name
+  </sql>
+  <select id="getDeptCategoryByLevel" parameterType="byte" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List"/>
+    from dict_department
+    WHERE 1=1
+    <if test="level!=null">
+      and level = #{level}
+    </if>
+    <if test="parentId!=null">
+      and parent_id = #{parentId}
+    </if>
+
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from dict_department
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from dict_department
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.DictDepartment">
+    insert into dict_department (id, parent_code, parent_name, 
+      child_code, child_name)
+    values (#{id,jdbcType=BIGINT}, #{parentCode,jdbcType=INTEGER}, #{parentName,jdbcType=VARCHAR}, 
+      #{childCode,jdbcType=INTEGER}, #{childName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" useGeneratedKeys="true" keyProperty="id" parameterType="com.yhyt.health.model.DictDepartment">
+    insert into dict_department
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="parentCode != null">
+        parent_code,
+      </if>
+      <if test="parentName != null">
+        parent_name,
+      </if>
+      <if test="childCode != null">
+        child_code,
+      </if>
+      <if test="childName != null">
+        child_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="parentCode != null">
+        #{parentCode,jdbcType=INTEGER},
+      </if>
+      <if test="parentName != null">
+        #{parentName,jdbcType=VARCHAR},
+      </if>
+      <if test="childCode != null">
+        #{childCode,jdbcType=INTEGER},
+      </if>
+      <if test="childName != null">
+        #{childName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.DictDepartment">
+    update dict_department
+    <set>
+      <if test="parentCode != null">
+        parent_code = #{parentCode,jdbcType=INTEGER},
+      </if>
+      <if test="parentName != null">
+        parent_name = #{parentName,jdbcType=VARCHAR},
+      </if>
+      <if test="childCode != null">
+        child_code = #{childCode,jdbcType=INTEGER},
+      </if>
+      <if test="childName != null">
+        child_name = #{childName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.DictDepartment">
+    update dict_department
+    set parent_code = #{parentCode,jdbcType=INTEGER},
+      parent_name = #{parentName,jdbcType=VARCHAR},
+      child_code = #{childCode,jdbcType=INTEGER},
+      child_name = #{childName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+    <select id="findDictDepartmentList" parameterType="java.util.Map" resultMap="BaseResultMap">
+  		select <include refid="Base_Column_List"/> from dict_department t
+  		<include refid="search_dictdepartment"></include> 
+  	</select>
+
+    <!-- 账户列表搜索条件  -->
+  <sql id="search_dictdepartment">
+    <trim prefix="WHERE" prefixOverrides="AND|OR">
+      <if test="diseaseId!=null">and exists (select d.id from dept_category_disease d where d.disease_id = #{diseaseId,jdbcType=INTEGER} and d.dept_category_id = t.id ) </if>
+      <if test="parentCode!=null">and parent_code = #{parentCode,jdbcType=INTEGER}</if>
+    </trim>
+  </sql>
+  <select id="getLevelOneDepts" resultMap="BaseResultMap">
+    select  parent_code,parent_name FROM dict_department group by parent_code,parent_name
+  </select>
+  <select id="getDictDeptList" parameterType="String" resultMap="BaseResultMap">
+    select id,child_name from dict_department where id in (${idStr})
+  </select>
+  <select id="getDictDepartmentList" parameterType="map" resultType="com.yhyt.health.model.DictDepartmentVO">
+    select id, parent_code parentCode, parent_name parentName, child_code childCode, child_name childName from dict_department t
+    <include refid="search_dictdepartment"></include>
+  </select>
+</mapper>

@@ -1,0 +1,615 @@
+package com.yhyt.health.service.impl;
+
+import com.yhyt.health.dao.*;
+import com.yhyt.health.model.*;
+import com.yhyt.health.model.dto.ItemBody;
+import com.yhyt.health.model.dto.ItemBodyReturnVo;
+import com.yhyt.health.model.dto.ItemQueryDTO;
+import com.yhyt.health.model.dto.ItemResultDTO;
+import com.yhyt.health.model.enumE.ItemStateEnum;
+import com.yhyt.health.service.ItemService;
+import com.yhyt.health.spring.AppResult;
+import com.yhyt.health.util.Page;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * 商品serviceImpl
+ */
+@Service
+public class ItemServiceImpl implements ItemService {
+    private static final Logger log = LoggerFactory.getLogger(ItemServiceImpl.class);
+    @Resource
+    private ItemMapper itemMapper;
+
+    @Resource
+    private ItemDepartmentMapper itemDepartmentMapper;
+
+    @Resource
+    private ItemDiseaseMapper itemDiseaseMapper;
+
+    @Resource
+    private ItemPictureMapper itemPictureMapper;
+
+    @Resource
+    private ItemLogMapper itemLogMapper;
+
+    @Override
+    public int deleteByPrimaryKey(Long id) {
+        return itemMapper.deleteByPrimaryKey(id);
+    }
+
+    @Override
+    public int insert(Item record) {
+        return itemMapper.insert(record);
+    }
+
+    @Override
+    public int insertSelective(Item record) {
+        return itemMapper.insertSelective(record);
+    }
+
+    @Override
+    public Item selectByPrimaryKey(Long id) {
+        return itemMapper.selectByPrimaryKey(id);
+    }
+
+    @Override
+    public int updateByPrimaryKeySelective(Item record) {
+        return itemMapper.updateByPrimaryKeySelective(record);
+    }
+
+    @Override
+    public int updateByPrimaryKeyWithBLOBs(Item record) {
+        return itemMapper.updateByPrimaryKeyWithBLOBs(record);
+    }
+
+    @Override
+    public int updateByPrimaryKey(Item record) { return itemMapper.updateByPrimaryKey(record);
+    }
+
+    /**
+     * 分页查询商品列表
+     * @param itemQueryDTO
+     * @return
+     */
+
+    @Override
+    public Page<ItemResultDTO> getItemResultDTOPage(ItemQueryDTO itemQueryDTO) {
+
+        Page<ItemResultDTO> page = new Page<ItemResultDTO>();
+        if(itemQueryDTO.getPageIndex()==null || itemQueryDTO.getPageIndex()==0){
+            itemQueryDTO.setPageIndex(1);
+        }
+        page.setPageNo(itemQueryDTO.getPageIndex());
+        if(itemQueryDTO.getPageSize() != null && itemQueryDTO.getPageSize() != 0){
+            page.setPageSize(itemQueryDTO.getPageSize());
+        }
+        if(null !=itemQueryDTO.getCategoryId() && itemQueryDTO.getCategoryId() == 0L){
+            itemQueryDTO.setCategoryId(null);
+        }
+        if(null !=itemQueryDTO.getState() && itemQueryDTO.getState() == 0){
+            itemQueryDTO.setState(null);
+        }
+        List<ItemResultDTO> list = new ArrayList<>();
+        list = this.itemMapper.getItemResultDTOPage(itemQueryDTO);
+
+        if(null!=list){
+            page.setResult(list);
+        }else {
+            page.setResult(Collections.emptyList());
+            page.setTotalRecord(0);
+        }
+        return  page;
+    }
+
+    @Override
+    public List<ItemResultDTO> getItemDTOsBelongDept(Long deptId) {
+        return itemDepartmentMapper.selectItemsBelongDepts(deptId);
+    }
+
+
+    /**
+     * 生成商品id＋code
+     *  废弃方法
+     * @return
+     */
+    @Override
+    public String createItemCode() {
+
+        //商品类型是服务包的
+        String codePrefi = "01";
+
+        return codePrefi;
+    }
+
+    /**
+     * 保存／修改商品信息
+     * @param itemBody
+     * @return
+     */
+    @Override
+    @Transactional
+    public AppResult insertOrUpdateItemAndDisease(ItemBody itemBody) {
+        AppResult appResult = new AppResult();
+            if(StringUtils.isEmpty(itemBody.getName()) && null == itemBody.getPrice() || null == itemBody.getState()){
+                appResult.setCode("400");
+                appResult.setMessage("失败");
+                return appResult;
+            }
+            /*if(checkItemBody(itemBody)){
+                appResult.setCode("400");
+                appResult.setMessage("失败");
+                return appResult;
+            }*/
+            try {
+                long startTime = System.currentTimeMillis();    //获取开始时间
+                //第一步 参数的非空判断直接在对象内部进行判断
+                //第二步 判断id是否为空 为空就新增  不为空就修改
+                if (null == itemBody.getId()) {
+                    //进入新增流程
+                    //保存商品信息
+
+                    //先保存，没有code，保存以后，根据id 去生成code 然后再去更新code
+                    itemBody.setCreateTime(DateTime.now().toDate());
+                    itemBody.setVersion(1L);//保存的第一版 version为1  修改情况下 version＋1
+                    if(itemBody.getTopOrder() == 0){
+                        itemBody.setTopOrder((byte)99);
+                    }
+                    //查询当前的排序是否已经存在，如果存在 直接返回 排序已经存在
+                    this.itemMapper.insertitemBody(itemBody);
+                    String temp = "0000000"+itemBody.getId();
+                    String code = temp.length()>8?temp.substring(temp.length()-8,temp.length()):temp;
+                    itemBody.setId(itemBody.getId());
+                    itemBody.setCode(code);
+                    itemBody.setOldVersion(itemBody.getVersion());
+                    itemBody.setVersion(itemBody.getVersion()+1);
+                    itemBody.setUpdateTime(DateTime.now().toDate());
+                    this.itemMapper.updateitemBodyByPrimaryKeySelective(itemBody);
+
+                    if(null != itemBody.getHospitalId()) {
+                        //保存商品关联医院科室表
+                        ItemDepartment itemDepartment = new ItemDepartment();
+                        itemDepartment.setItemId(itemBody.getId());
+                        itemDepartment.setHospitalId(itemBody.getHospitalId());
+                        itemDepartment.setDepartmentId(itemBody.getDepartmentId());
+                        itemDepartment.setCreateTime(DateTime.now().toDate());
+                        itemDepartmentMapper.insertSelective(itemDepartment);
+                    }
+
+                    //dictDiseaseIds
+                    if(null!= itemBody.getDictDiseaseIds() && itemBody.getDictDiseaseIds().size()>0) {
+                        //保存商品关联疾病表
+                        List<Long> itemDiseases = new ArrayList<>();
+                        itemDiseases = itemBody.getDictDiseaseIds();
+                        for (Long vo : itemDiseases) {
+                            ItemDisease itemDisease = new ItemDisease();
+
+                            itemDisease.setDictDiseaseId(vo);
+                            itemDisease.setItemId(itemBody.getId());
+                            itemDisease.setCtreateTime(DateTime.now().toDate());
+                            itemDiseaseMapper.insertSelective(itemDisease);
+                        }
+                    }
+                    //保存商品详情图片表
+                    List<String> contentDetailsPictures = itemBody.getContentDetailsPicture();
+                    if(null != contentDetailsPictures && contentDetailsPictures.size()>0){
+                        //先删除
+                        itemPictureMapper.deleteByAppointField("item_id",itemBody.getId());
+                        byte tmp=0;
+                        for(String pic : contentDetailsPictures){
+                            ItemPicture itemPicture = new ItemPicture();
+                            itemPicture.setItemId(itemBody.getId());
+                            itemPicture.setSortNumber(tmp++);
+                            itemPicture.setUrl(pic);
+                            itemPicture.setCreateTime(DateTime.now().toDate());
+                            itemPictureMapper.insertSelective(itemPicture);
+                        }
+                    }
+
+                    long endTime = System.currentTimeMillis();    //获取结束时间
+                    ItemLog itemLog = new ItemLog();
+                    itemLog.setItemId(itemBody.getId());
+                    itemLog.setOperator(itemBody.getCreateOperator());
+                    itemLog.setCreateTime(DateTime.now().toDate());
+                    /*StringBuffer stringBuffer = new StringBuffer();
+                    stringBuffer.append("id为");
+                    stringBuffer.append(itemBody.getId()+"的");
+                    stringBuffer.append(itemBody.getName()+"商品创建成功，执行时间为");
+                    stringBuffer.append((endTime - startTime)+"ms");
+                    stringBuffer.append("执行本次操作的操作者是："+itemBody.getCreateOperator());*/
+                    itemLog.setContent("创建了商品");
+                    itemLogMapper.insertSelective(itemLog);
+
+                    log.info("执行商品的创建操作成功,执行时间为{} ms",(endTime - startTime));
+
+                } else {
+                    //进入修改流程
+                    //更新商品信息
+                    itemBody.setUpdateTime(DateTime.now().toDate());
+                    //更新的时候version需要＋1
+                    Long version = this.itemMapper.selectByPrimaryKey(itemBody.getId()).getVersion();
+                    itemBody.setVersion(version+1);
+                    itemBody.setOldVersion(version);
+                    Item item = this.itemMapper.selectByPrimaryKey(itemBody.getId());
+                    itemBody.setCode(item.getCode());
+                    if(itemBody.getTopOrder() == 0){
+                        itemBody.setTopOrder((byte)99);
+                    }
+                    this.itemMapper.updateitemBodyByPrimaryKeySelective(itemBody);
+
+                    if(null != itemBody.getHospitalId()) {
+                        //更新商品关联医院科室表
+                        ItemDepartment itemDepartment = this.itemDepartmentMapper.selectByAppointField("item_id", itemBody.getId());
+                        itemDepartment.setHospitalId(itemBody.getHospitalId());
+                        itemDepartment.setDepartmentId(itemBody.getDepartmentId());
+                        itemDepartmentMapper.updateByPrimaryKeySelective(itemDepartment);
+                    }
+
+                    //dictDiseaseIds
+                    if(null!= itemBody.getDictDiseaseIds() && itemBody.getDictDiseaseIds().size()>0) {
+                        //商品关联疾病表
+                        itemDiseaseMapper.deleteByAppointField("item_id", itemBody.getId());
+                        List<Long> itemDiseases = new ArrayList<>();
+                        itemDiseases = itemBody.getDictDiseaseIds();
+                        for (Long vo : itemDiseases) {
+                            ItemDisease itemDisease = new ItemDisease();
+                            itemDisease.setDictDiseaseId(vo);
+                            itemDisease.setItemId(itemBody.getId());
+                            itemDisease.setCtreateTime(DateTime.now().toDate());
+                            itemDiseaseMapper.insertSelective(itemDisease);
+                        }
+                    }
+
+                    //保存商品详情图片表
+                    List<String> contentDetailsPictures = itemBody.getContentDetailsPicture();
+                    if(null != contentDetailsPictures && contentDetailsPictures.size()>0) {
+                        // 1_23123  2-_
+                        //先删除
+                        itemPictureMapper.deleteByAppointField("item_id", itemBody.getId());
+                        byte tmp = 0;
+                        for (String pic : contentDetailsPictures) {
+                            ItemPicture itemPicture = new ItemPicture();
+                            itemPicture.setItemId(itemBody.getId());
+                            itemPicture.setSortNumber(tmp++);
+                            itemPicture.setUrl(pic);
+                            itemPicture.setCreateTime(DateTime.now().toDate());
+                            itemPictureMapper.insertSelective(itemPicture);
+                        }
+                    }
+                    long endTime = System.currentTimeMillis();    //获取结束时间
+                    ItemLog itemLog = new ItemLog();
+                    itemLog.setItemId(itemBody.getId());
+                    itemLog.setOperator(itemBody.getCreateOperator());
+                    itemLog.setCreateTime(DateTime.now().toDate());
+                    /*StringBuffer stringBuffer = new StringBuffer();
+                    stringBuffer.append("id为");
+                    stringBuffer.append(itemBody.getId()+"的");
+                    stringBuffer.append(itemBody.getName()+"商品更新操作成功，执行时间为");
+                    stringBuffer.append((endTime - startTime)+"ms");
+                    stringBuffer.append("操作者是"+itemBody.getCreateOperator());*/
+                    itemLog.setContent("编辑了商品");
+                    itemLogMapper.insertSelective(itemLog);
+
+                    log.info("执行商品的更新操作成功,执行时间为{} ms",(endTime - startTime));
+                }
+                appResult.setCode("200");
+                appResult.setMessage("成功");
+                appResult.setBody(itemBody.getId());
+            } catch (Exception e) {
+                e.printStackTrace();
+                appResult.setCode("400");
+                appResult.setMessage("失败");
+            }
+        return appResult;
+    }
+
+    /**
+     * 上架商品，需要校验商品信息是否录入完全
+     * @return
+     */
+    @Override
+    public AppResult shelvesItem(final Long itemId,final Byte state,final String currentName) {
+        AppResult appResult = new AppResult();
+        //传入参数校验
+        if(null == itemId || null == state){
+            appResult.setCode("301");
+            appResult.setMessage("传入的itemId 或者 state 空");
+            return appResult;
+        }
+        if(state != 2){
+            appResult.setCode("302");
+            appResult.setMessage("传入的state 不是上架状态2");
+            return appResult;
+        }
+        //商品必填项校验
+        Item item = this.itemMapper.selectByPrimaryKey(itemId);
+        if(item.isEmptyItem()){
+            appResult.setCode("303");
+            appResult.setMessage("item 必填项校验失败");
+            return appResult;
+        }
+        ItemDepartment itemDepartment = this.itemDepartmentMapper.selectByItemId(itemId);
+        if(null == itemDepartment || null == itemDepartment.getHospitalId() ||null == itemDepartment.getDepartmentId()  ){
+            appResult.setCode("303");
+            appResult.setMessage("item 必填项校验失败");
+            return appResult;
+        }
+        if (item.getTopOrder() != 99) {
+            synchronized (this) {
+                //判断当前商品的排序是否已经存在
+                //默认排序，不判断重复
+                List<Item> getItemByParams = this.itemMapper.getItemByParams(itemDepartment.getHospitalId(), itemDepartment.getDepartmentId(), state, item.getTopOrder());
+                if (null != getItemByParams && getItemByParams.size() > 0) {
+                    appResult.setCode("304");
+                    appResult.setMessage("当前科室下的排序号，已经存在，请重新选择该商品的指定顺序");
+                    return appResult;
+                }
+            }
+        }
+        item.setState(state);
+        this.itemMapper.offshelfItem(itemId,state);
+
+        ItemLog itemLog = new ItemLog();
+        itemLog.setItemId(itemId);
+        itemLog.setOperator(currentName);
+        itemLog.setCreateTime(DateTime.now().toDate());
+        itemLog.setContent("上架了商品");
+        itemLogMapper.insertSelective(itemLog);
+        appResult.setCode("200");
+        appResult.setMessage("成功");
+
+        return appResult;
+    }
+
+    @Override
+    public AppResult changeItemState(Long itemId, Byte state) {
+
+
+
+
+        return null;
+    }
+
+    /**
+     * 商品的详细信息查询接口
+     * @return
+     */
+    @Override
+    public ItemBodyReturnVo getItemMessage(final Long itemId) {
+
+        ItemBodyReturnVo itemBodyReturnVo = itemMapper.getItemMessage(itemId);
+        //获取疾病列表
+        itemBodyReturnVo.setDictDiseaseIds(itemDiseaseMapper.getdDiseaseIdByItemId(itemId));
+        //获取图片列表
+        itemBodyReturnVo.setContentDetailsPicture(itemPictureMapper.getPictureUrls(itemId));
+
+        itemBodyReturnVo.setItemLogs(this.itemLogMapper.selectAll(itemId));
+
+        return itemBodyReturnVo;
+    }
+
+    @Override
+    @Transactional
+    public AppResult offshelfItem(Long itemId, Byte state,String currentName) {
+        AppResult appResult = new AppResult();
+        try {
+            itemMapper.offshelfItem(itemId, state);
+            appResult.setCode("200");
+            appResult.setMessage("成功");
+
+            ItemLog itemLog = new ItemLog();
+            itemLog.setItemId(itemId);
+            itemLog.setOperator(currentName);
+            itemLog.setCreateTime(DateTime.now().toDate());
+            itemLog.setContent("下架了商品");
+            itemLogMapper.insertSelective(itemLog);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            appResult.setCode("400");
+            appResult.setMessage("失败");
+        }
+        return  appResult;
+    }
+
+    @Override
+    @Transactional
+    public int updateItemState(Item item) {
+        if (item!=null){
+            Item item1 = itemMapper.selectByPrimaryKey(item.getId());
+            item.setUpdateTime(new Date());
+            item.setVersion(item1.getVersion());
+            if (2==item.getState()) item.setOnshelfDay(new Date());//上架
+            else if (4==item.getState()) item.setOffshelfDay(new Date());//下架
+            //TODO 校验
+            itemMapper.updateByPrimaryKeySelective(item);
+        }
+
+        return 0;
+    }
+
+    /**
+     * 获取最新的商品信息
+     * @return
+     */
+    @Override
+    public Item getNewestItem() {
+        return itemMapper.getNewestItem();
+    }
+
+    @Override
+    public Item selectByOrderId(Long orderId) {
+        return itemMapper.selectByOrderId(orderId);
+    }
+
+    public String emptyCheck(Item vo){
+        if(StringUtils.isEmpty(vo.getBrand())){return "品牌"; }
+        if(StringUtils.isEmpty(vo.getName())){return "商品名称";}
+        if(StringUtils.isEmpty(vo.getDescription())){return "商品描述";}
+        if(StringUtils.isEmpty(vo.getNavigationPicUrl())){return "商品列表图";}
+        if(StringUtils.isEmpty(vo.getTitlePic())){return  "题图";}
+        if(null == vo.getCount()){return "商品数量";}
+        if(null == vo.getCategoryDictId()){return  "商品分类";}
+        if(null == vo.getDepartmentId()){return  "科室";}
+        if(null == vo.getHospitalId()){return  "医院";}
+        if(null == vo.getPrice()){return  "价格";}
+        if(null == vo.getRatio()){return  "分成比例";}
+        if(null == vo.getExpireDate()){return  "有效期";}
+        if(null == vo.getReleaseClient()){return  "发布端";}
+        if(null == vo.getReleasePlace()){return  "发布位置";}
+        if(null == vo.getState()){return  "商品状态";}
+        if(null == vo.getDictDiseaseIds() && vo.getDictDiseaseIds().size()<1){return "商品关联疾病列表";}
+        if(null == vo.getContentDetailsPicture() && vo.getContentDetailsPicture().size()<1){return "商品详情图";}
+        return "";
+    }
+
+    /**
+     * 商品上下架状态变更
+     */
+    @Override
+    @Transactional
+    public void itemStateChange() {
+        try {
+            long startTime = System.currentTimeMillis();    //获取开始时间
+            //商品上下架状态变更
+            //需要上架的商品列表
+            List<Item> itemNeedShelves = itemMapper.getItemNeedShelves(
+                    (byte) ItemStateEnum.PENDING.getId(), DateTime.now().toDate());
+
+            int temp = 0;
+            for (Item vo : itemNeedShelves) {
+                if(vo.isEmptyItem()){
+                    //新添加的逻辑，上架失败的添加日志
+                    String emptyCheck = this.emptyCheck(vo);
+                    ItemLog itemLog = new ItemLog();
+                    itemLog.setItemId(vo.getId());
+                    itemLog.setOperator("系统");
+                    itemLog.setCreateTime(DateTime.now().toDate());
+                    StringBuffer stringBuffer = new StringBuffer();
+                    stringBuffer.append("自动上架失败：失败原因:");
+                    stringBuffer.append(emptyCheck+" 空");
+                    itemLog.setContent(stringBuffer.toString());
+                    itemLogMapper.insertSelective(itemLog);
+                    continue;
+                }if(null == vo.getId()){
+                    continue;
+                }
+                if (vo.getTopOrder() != 99) {
+                    List<Item> getItemByParams = this.itemMapper.getItemByParams(vo.getHospitalId(), vo.getDepartmentId(),(byte)2, vo.getTopOrder());
+                    if (null != getItemByParams && getItemByParams.size() > 0) {
+                        continue;
+                    }
+                }
+                temp++;
+                Long version = null;
+                version = vo.getVersion();
+                vo.setState((byte) ItemStateEnum.SHELVES.getId()); //设置状态  上架
+                vo.setVersion(version + 1);
+                this.itemMapper.updateByPrimaryKeySelective(vo);
+
+                ItemLog itemLog = new ItemLog();
+                itemLog.setItemId(vo.getId());
+                itemLog.setOperator("系统");
+                itemLog.setCreateTime(DateTime.now().toDate());
+                StringBuffer stringBuffer = new StringBuffer();
+                stringBuffer.append("自动上架");
+                itemLog.setContent(stringBuffer.toString());
+                itemLogMapper.insertSelective(itemLog);
+
+            }
+            long endShelvesTime = System.currentTimeMillis();    //获取结束时间
+            boolean flag = null != itemNeedShelves && itemNeedShelves.size() > 0 ? true : false;
+
+            log.info("每天凌晨自动执行商品上架功能执行成功,本次上架了{}个商品，总共执行时常为{} ms",temp,(endShelvesTime - startTime));
+            //需要下架的商品列表
+            List<Item> itemOffshelfs = itemMapper.getItemNeedShelves(
+                    (byte) ItemStateEnum.OFFSHELF.getId(), DateTime.now().toDate());
+            int tempOff = 0;
+            for (Item vo : itemOffshelfs) {
+                Long version = null;
+                version = vo.getVersion();
+                vo.setState((byte) ItemStateEnum.OFFSHELF.getId()); //设置状态  上架
+                vo.setVersion(version + 1);
+                this.itemMapper.updateByPrimaryKeySelective(vo);
+
+                ItemLog itemLogOff = new ItemLog();
+                itemLogOff.setItemId(vo.getId());
+                itemLogOff.setOperator("系统");
+                itemLogOff.setCreateTime(DateTime.now().toDate());
+                StringBuffer stringBufferOff = new StringBuffer();
+                stringBufferOff.append("自动下架");
+                itemLogOff.setContent(stringBufferOff.toString());
+                itemLogMapper.insertSelective(itemLogOff);
+                tempOff++;
+            }
+
+            long endOffshelfsTime = System.currentTimeMillis();    //获取结束时间
+            boolean flagOff = null != itemOffshelfs && itemOffshelfs.size() > 0 ? true : false;
+
+            log.info("每天凌晨自动执行商品下架功能执行成功,本次下架了{}个商品，总共执行时常为{} ms",tempOff,(endOffshelfsTime - startTime));
+        }catch (Exception e){
+            log.info("每天凌晨自动执行商品上／下架功能执行失败,{},{}",e.getMessage(),e);
+        }
+    }
+
+    public Boolean checkItemBody(ItemBody itemBody){
+        if(StringUtils.isEmpty(itemBody.getBrand())){
+            //品牌名称
+            return false;
+        }
+        if(StringUtils.isEmpty(itemBody.getName())){
+            //商品名称
+            return false;
+        }
+        if(StringUtils.isEmpty(itemBody.getDescription())){
+            //商品描述
+            return false;
+        }
+        if(StringUtils.isEmpty(itemBody.getNavigationPicUrl())){
+            //商品列表图
+            return false;
+        }if(null == itemBody.getContentDetailsPicture() && itemBody.getContentDetailsPicture().size()<1){
+            return false;
+        }if(null == itemBody.getCount()){
+            return false;
+        }if(null == itemBody.getCategoryDictId()){
+            //商品分类
+            return  false;
+        }if(null == itemBody.getDepartmentId()){
+            return  false;
+        }if(null == itemBody.getHospitalId()){
+            return  false;
+        }if(null == itemBody.getPrice()){
+            return  false;
+        }if(null == itemBody.getRatio()){
+            return  false;
+        }if(null == itemBody.getExpireDate()){
+            return  false;
+        }if(null == itemBody.getReleaseClient()){
+            return  false;
+        }if(null == itemBody.getReleasePlace()){
+            return  false;}
+        if(StringUtils.isEmpty(itemBody.getTitlePic())){
+            return  false;
+        }if(null == itemBody.getState()){
+            return  false;
+        }if(null == itemBody.getDictDiseaseIds() && itemBody.getDictDiseaseIds().size()<1){
+            return false;
+        }if(null == itemBody.getContentDetailsPicture() && itemBody.getContentDetailsPicture().size()<1){
+            return false;
+        }
+        return true;
+    }
+
+}

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.DictDiseaseMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.DictDisease">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="tags" jdbcType="VARCHAR" property="tags" />
+    <result column="full_spell" jdbcType="VARCHAR" property="fullSpell" />
+    <result column="abbr_spell" jdbcType="VARCHAR" property="abbrSpell" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="depts" jdbcType="VARCHAR" property="depts" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, code, name, tags, full_spell, abbr_spell, create_time,depts
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from dict_disease
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from dict_disease
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.DictDisease">
+    insert into dict_disease (id, code, 
+      name, tags, full_spell, 
+      abbr_spell, create_time)
+    values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, 
+      #{name,jdbcType=VARCHAR}, #{tags,jdbcType=VARCHAR}, #{fullSpell,jdbcType=VARCHAR}, 
+      #{abbrSpell,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" useGeneratedKeys="true" keyProperty="id" parameterType="com.yhyt.health.model.DictDisease">
+    insert into dict_disease
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="code != null">
+        code,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="tags != null">
+        tags,
+      </if>
+      <if test="fullSpell != null">
+        full_spell,
+      </if>
+      <if test="abbrSpell != null">
+        abbr_spell,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="code != null">
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="tags != null">
+        #{tags,jdbcType=VARCHAR},
+      </if>
+      <if test="fullSpell != null">
+        #{fullSpell,jdbcType=VARCHAR},
+      </if>
+      <if test="abbrSpell != null">
+        #{abbrSpell,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.DictDisease">
+    update dict_disease
+    <set>
+      <if test="code != null">
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="tags != null">
+        tags = #{tags,jdbcType=VARCHAR},
+      </if>
+      <if test="fullSpell != null">
+        full_spell = #{fullSpell,jdbcType=VARCHAR},
+      </if>
+      <if test="abbrSpell != null">
+        abbr_spell = #{abbrSpell,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.DictDisease">
+    update dict_disease
+    set code = #{code,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      tags = #{tags,jdbcType=VARCHAR},
+      full_spell = #{fullSpell,jdbcType=VARCHAR},
+      abbr_spell = #{abbrSpell,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <select id="findPersistableList" parameterType="java.util.Map" resultMap="BaseResultMap">
+  	select <include refid="Base_Column_List" /> from dict_disease t
+  	<include refid="search_disease"></include> 
+  </select>
+
+    <!-- 账户列表搜索条件  -->
+  <sql id="search_disease">
+    <trim prefix="WHERE" prefixOverrides="AND|OR">
+    	<if test="existDiseaseGroupId!=null">and not exists (select dd.id from dict_disease_group_relation dd where dd.dict_disease_group_id = #{existDiseaseGroupId,jdbcType=BIGINT} and t.id = dd.dict_disease_id)</if>
+    	<if test="diseaseGroupId!=null">and exists (select dd.id from dict_disease_group_relation dd where dd.dict_disease_group_id = #{diseaseGroupId,jdbcType=BIGINT} and t.id = dd.dict_disease_id)</if>
+      	<if test="code!=null">and t.code like concat('%',#{code},'%')</if>
+      	<if test="name!=null"> and t.name like concat('%',#{name},'%')</if> 
+    </trim>
+  </sql>
+</mapper>

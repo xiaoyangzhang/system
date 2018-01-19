@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.ItemMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.Item">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="brand" jdbcType="VARCHAR" property="brand" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="category_dict_id" jdbcType="BIGINT" property="categoryDictId" />
+    <result column="price" jdbcType="DECIMAL" property="price" />
+    <result column="ratio" jdbcType="INTEGER" property="ratio" />
+    <result column="expire_date" jdbcType="INTEGER" property="expireDate" />
+    <result column="release_client" jdbcType="TINYINT" property="releaseClient" />
+    <result column="release_place" jdbcType="TINYINT" property="releasePlace" />
+    <result column="top_order" jdbcType="TINYINT" property="topOrder" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="navigation_pic_url" jdbcType="VARCHAR" property="navigationPicUrl" />
+    <result column="top_pic_url" jdbcType="VARCHAR" property="topPicUrl" />
+    <result column="is_quote" jdbcType="TINYINT" property="isQuote" />
+    <result column="quote_url" jdbcType="VARCHAR" property="quoteUrl" />
+    <result column="title_pic" jdbcType="VARCHAR" property="titlePic" />
+    <result column="subtitle" jdbcType="VARCHAR" property="subtitle" />
+    <result column="h5_url" jdbcType="VARCHAR" property="h5Url" />
+    <result column="state" jdbcType="TINYINT" property="state" />
+    <result column="onshelf_day" jdbcType="TIMESTAMP" property="onshelfDay" />
+    <result column="offshelf_day" jdbcType="TIMESTAMP" property="offshelfDay" />
+    <result column="create_operator" jdbcType="VARCHAR" property="createOperator" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.yhyt.health.model.Item">
+    <result column="body" jdbcType="LONGVARCHAR" property="body" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, code, brand, name, category_dict_id, price, ratio, expire_date, release_client, 
+    release_place, top_order, description, navigation_pic_url, top_pic_url, is_quote, 
+    quote_url, title_pic, subtitle, h5_url, state, onshelf_day, offshelf_day, create_operator, 
+    update_time, create_time
+  </sql>
+  <sql id="Blob_Column_List">
+    body
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="ResultMapWithBLOBs">
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from item
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <select id="getItemResultDTOPage" resultType="com.yhyt.health.model.dto.ItemResultDTO">
+
+    select im.id,im.code,im.name,im.price,
+       case im.category_dict_id when 1 then 'e' else 'er' end  as categoryName,
+       hl.name as hostitalName,
+       dmt.name as departmentName,
+       im.description,
+       case im.top_order when 1 then '顺序1' when 2 then '顺序2' when 3 then '顺序3' else '' end as topOrder,
+       im.state,
+       case im.state when 1 then '待处理' when 2 then '上架' when 3 then '处理中' when 4 then '下架' else '' end as stateName,
+       im.create_operator,
+       IFNULL(DATE_FORMAT(im.onshelf_day,"%Y-%m-%d %H"),"") as onshelfDay,
+	IFNULL(DATE_FORMAT(im.offshelf_day,"%Y-%m-%d %H"),"") as offshelfDay,
+	IFNULL(DATE_FORMAT(im.create_time,"%Y-%m-%d %H"),"") as createTime
+ 	from item im
+	left join item_department idt
+		on im.id = idt.item_id
+	left join hospital hl
+		on hl.id = idt.hospital_id
+	left join department dmt
+		on dmt.id = idt.department_id;
+    <include refid="search_item"></include>
+  </select>
+  <select id="getItemMessage" resultType="com.yhyt.health.model.dto.ItemBodyReturnVo">
+
+    select im.*,imt.department_id as departmentId,imt.hospital_id as hospitalId,
+	dmt.name as  departmentName,hl.name as hospitalName
+      from item im
+      left join item_department imt
+      on im.id = imt.item_id
+      left join hospital hl
+      on hl.id = imt.hospital_id
+      left join department dmt
+      on dmt.id = imt.department_id
+      where im.id = #{itemId}
+  </select>
+
+  <!-- 商品列表搜索条件  -->
+<sql id="search_item">
+<trim prefix="WHERE" prefixOverrides="AND|OR">
+  <if test="code!=null"> and im.code = #{code}</if>
+  <if test="name!=null || name!=''">and im.name like   concat('%',#{name})</if>
+  <if test="hospitalName!=null || hospitalName!='' ">and hl.name like concat('%',#{hospitalName})	</if>
+  <if test="departmentName!=null || departmentName!=''">and dmt.name like  concat('%',#{departmentName})</if>
+  <if test="categoryId!=null">and im.category_dict_id=#{categoryId}</if>
+  <if test="state!=null">and im.state=#{state}</if>
+  <if test="beginTime!=null || beginTime!=''"> and im.onshelf_day <![CDATA[>=]]>  #{beginTime}</if>
+  <if test="endTime!=null || endTime!=''" > and t.offshelf_day <![CDATA[<=]]>  #{endTime}</if>
+</trim>
+</sql>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from item
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.Item">
+    insert into item (id, code, brand, 
+      name, category_dict_id, price, 
+      ratio, expire_date, release_client, 
+      release_place, top_order, description, 
+      navigation_pic_url, top_pic_url, is_quote, 
+      quote_url, title_pic, subtitle, 
+      h5_url, state, onshelf_day, 
+      offshelf_day, create_operator, update_time, 
+      create_time, body)
+    values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR}, 
+      #{name,jdbcType=VARCHAR}, #{categoryDictId,jdbcType=BIGINT}, #{price,jdbcType=DECIMAL}, 
+      #{ratio,jdbcType=INTEGER}, #{expireDate,jdbcType=INTEGER}, #{releaseClient,jdbcType=TINYINT}, 
+      #{releasePlace,jdbcType=TINYINT}, #{topOrder,jdbcType=TINYINT}, #{description,jdbcType=VARCHAR}, 
+      #{navigationPicUrl,jdbcType=VARCHAR}, #{topPicUrl,jdbcType=VARCHAR}, #{isQuote,jdbcType=TINYINT}, 
+      #{quoteUrl,jdbcType=VARCHAR}, #{titlePic,jdbcType=VARCHAR}, #{subtitle,jdbcType=VARCHAR}, 
+      #{h5Url,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, #{onshelfDay,jdbcType=TIMESTAMP}, 
+      #{offshelfDay,jdbcType=TIMESTAMP}, #{createOperator,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{body,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.Item">
+    insert into item
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="code != null">
+        code,
+      </if>
+      <if test="brand != null">
+        brand,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="categoryDictId != null">
+        category_dict_id,
+      </if>
+      <if test="price != null">
+        price,
+      </if>
+      <if test="ratio != null">
+        ratio,
+      </if>
+      <if test="expireDate != null">
+        expire_date,
+      </if>
+      <if test="releaseClient != null">
+        release_client,
+      </if>
+      <if test="releasePlace != null">
+        release_place,
+      </if>
+      <if test="topOrder != null">
+        top_order,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="navigationPicUrl != null">
+        navigation_pic_url,
+      </if>
+      <if test="topPicUrl != null">
+        top_pic_url,
+      </if>
+      <if test="isQuote != null">
+        is_quote,
+      </if>
+      <if test="quoteUrl != null">
+        quote_url,
+      </if>
+      <if test="titlePic != null">
+        title_pic,
+      </if>
+      <if test="subtitle != null">
+        subtitle,
+      </if>
+      <if test="h5Url != null">
+        h5_url,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="onshelfDay != null">
+        onshelf_day,
+      </if>
+      <if test="offshelfDay != null">
+        offshelf_day,
+      </if>
+      <if test="createOperator != null">
+        create_operator,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="body != null">
+        body,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="code != null">
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="brand != null">
+        #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryDictId != null">
+        #{categoryDictId,jdbcType=BIGINT},
+      </if>
+      <if test="price != null">
+        #{price,jdbcType=DECIMAL},
+      </if>
+      <if test="ratio != null">
+        #{ratio,jdbcType=INTEGER},
+      </if>
+      <if test="expireDate != null">
+        #{expireDate,jdbcType=INTEGER},
+      </if>
+      <if test="releaseClient != null">
+        #{releaseClient,jdbcType=TINYINT},
+      </if>
+      <if test="releasePlace != null">
+        #{releasePlace,jdbcType=TINYINT},
+      </if>
+      <if test="topOrder != null">
+        #{topOrder,jdbcType=TINYINT},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="navigationPicUrl != null">
+        #{navigationPicUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="topPicUrl != null">
+        #{topPicUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="isQuote != null">
+        #{isQuote,jdbcType=TINYINT},
+      </if>
+      <if test="quoteUrl != null">
+        #{quoteUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="titlePic != null">
+        #{titlePic,jdbcType=VARCHAR},
+      </if>
+      <if test="subtitle != null">
+        #{subtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="h5Url != null">
+        #{h5Url,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=TINYINT},
+      </if>
+      <if test="onshelfDay != null">
+        #{onshelfDay,jdbcType=TIMESTAMP},
+      </if>
+      <if test="offshelfDay != null">
+        #{offshelfDay,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createOperator != null">
+        #{createOperator,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="body != null">
+        #{body,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <insert id="insertitemBody">
+
+    insert into item
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="code != null">
+        code,
+      </if>
+      <if test="brand != null">
+        brand,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="categoryDictId != null">
+        category_dict_id,
+      </if>
+      <if test="price != null">
+        price,
+      </if>
+      <if test="ratio != null">
+        ratio,
+      </if>
+      <if test="expireDate != null">
+        expire_date,
+      </if>
+      <if test="releaseClient != null">
+        release_client,
+      </if>
+      <if test="releasePlace != null">
+        release_place,
+      </if>
+      <if test="topOrder != null">
+        top_order,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="navigationPicUrl != null">
+        navigation_pic_url,
+      </if>
+      <if test="topPicUrl != null">
+        top_pic_url,
+      </if>
+      <if test="isQuote != null">
+        is_quote,
+      </if>
+      <if test="quoteUrl != null">
+        quote_url,
+      </if>
+      <if test="titlePic != null">
+        title_pic,
+      </if>
+      <if test="subtitle != null">
+        subtitle,
+      </if>
+      <if test="h5Url != null">
+        h5_url,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="onshelfDay != null">
+        onshelf_day,
+      </if>
+      <if test="offshelfDay != null">
+        offshelf_day,
+      </if>
+      <if test="createOperator != null">
+        create_operator,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="body != null">
+        body,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="code != null">
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="brand != null">
+        #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryDictId != null">
+        #{categoryDictId,jdbcType=BIGINT},
+      </if>
+      <if test="price != null">
+        #{price,jdbcType=DECIMAL},
+      </if>
+      <if test="ratio != null">
+        #{ratio,jdbcType=INTEGER},
+      </if>
+      <if test="expireDate != null">
+        #{expireDate,jdbcType=INTEGER},
+      </if>
+      <if test="releaseClient != null">
+        #{releaseClient,jdbcType=TINYINT},
+      </if>
+      <if test="releasePlace != null">
+        #{releasePlace,jdbcType=TINYINT},
+      </if>
+      <if test="topOrder != null">
+        #{topOrder,jdbcType=TINYINT},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="navigationPicUrl != null">
+        #{navigationPicUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="topPicUrl != null">
+        #{topPicUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="isQuote != null">
+        #{isQuote,jdbcType=TINYINT},
+      </if>
+      <if test="quoteUrl != null">
+        #{quoteUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="titlePic != null">
+        #{titlePic,jdbcType=VARCHAR},
+      </if>
+      <if test="subtitle != null">
+        #{subtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="h5Url != null">
+        #{h5Url,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=TINYINT},
+      </if>
+      <if test="onshelfDay != null">
+        #{onshelfDay,jdbcType=TIMESTAMP},
+      </if>
+      <if test="offshelfDay != null">
+        #{offshelfDay,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createOperator != null">
+        #{createOperator,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="body != null">
+        #{body,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+
+
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.Item">
+    update item
+    <set>
+      <if test="code != null">
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="brand != null">
+        brand = #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryDictId != null">
+        category_dict_id = #{categoryDictId,jdbcType=BIGINT},
+      </if>
+      <if test="price != null">
+        price = #{price,jdbcType=DECIMAL},
+      </if>
+      <if test="ratio != null">
+        ratio = #{ratio,jdbcType=INTEGER},
+      </if>
+      <if test="expireDate != null">
+        expire_date = #{expireDate,jdbcType=INTEGER},
+      </if>
+      <if test="releaseClient != null">
+        release_client = #{releaseClient,jdbcType=TINYINT},
+      </if>
+      <if test="releasePlace != null">
+        release_place = #{releasePlace,jdbcType=TINYINT},
+      </if>
+      <if test="topOrder != null">
+        top_order = #{topOrder,jdbcType=TINYINT},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="navigationPicUrl != null">
+        navigation_pic_url = #{navigationPicUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="topPicUrl != null">
+        top_pic_url = #{topPicUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="isQuote != null">
+        is_quote = #{isQuote,jdbcType=TINYINT},
+      </if>
+      <if test="quoteUrl != null">
+        quote_url = #{quoteUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="titlePic != null">
+        title_pic = #{titlePic,jdbcType=VARCHAR},
+      </if>
+      <if test="subtitle != null">
+        subtitle = #{subtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="h5Url != null">
+        h5_url = #{h5Url,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=TINYINT},
+      </if>
+      <if test="onshelfDay != null">
+        onshelf_day = #{onshelfDay,jdbcType=TIMESTAMP},
+      </if>
+      <if test="offshelfDay != null">
+        offshelf_day = #{offshelfDay,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createOperator != null">
+        create_operator = #{createOperator,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="body != null">
+        body = #{body,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.yhyt.health.model.Item">
+    update item
+    set code = #{code,jdbcType=VARCHAR},
+      brand = #{brand,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      category_dict_id = #{categoryDictId,jdbcType=BIGINT},
+      price = #{price,jdbcType=DECIMAL},
+      ratio = #{ratio,jdbcType=INTEGER},
+      expire_date = #{expireDate,jdbcType=INTEGER},
+      release_client = #{releaseClient,jdbcType=TINYINT},
+      release_place = #{releasePlace,jdbcType=TINYINT},
+      top_order = #{topOrder,jdbcType=TINYINT},
+      description = #{description,jdbcType=VARCHAR},
+      navigation_pic_url = #{navigationPicUrl,jdbcType=VARCHAR},
+      top_pic_url = #{topPicUrl,jdbcType=VARCHAR},
+      is_quote = #{isQuote,jdbcType=TINYINT},
+      quote_url = #{quoteUrl,jdbcType=VARCHAR},
+      title_pic = #{titlePic,jdbcType=VARCHAR},
+      subtitle = #{subtitle,jdbcType=VARCHAR},
+      h5_url = #{h5Url,jdbcType=VARCHAR},
+      state = #{state,jdbcType=TINYINT},
+      onshelf_day = #{onshelfDay,jdbcType=TIMESTAMP},
+      offshelf_day = #{offshelfDay,jdbcType=TIMESTAMP},
+      create_operator = #{createOperator,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      body = #{body,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.Item">
+    update item
+    set code = #{code,jdbcType=VARCHAR},
+      brand = #{brand,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      category_dict_id = #{categoryDictId,jdbcType=BIGINT},
+      price = #{price,jdbcType=DECIMAL},
+      ratio = #{ratio,jdbcType=INTEGER},
+      expire_date = #{expireDate,jdbcType=INTEGER},
+      release_client = #{releaseClient,jdbcType=TINYINT},
+      release_place = #{releasePlace,jdbcType=TINYINT},
+      top_order = #{topOrder,jdbcType=TINYINT},
+      description = #{description,jdbcType=VARCHAR},
+      navigation_pic_url = #{navigationPicUrl,jdbcType=VARCHAR},
+      top_pic_url = #{topPicUrl,jdbcType=VARCHAR},
+      is_quote = #{isQuote,jdbcType=TINYINT},
+      quote_url = #{quoteUrl,jdbcType=VARCHAR},
+      title_pic = #{titlePic,jdbcType=VARCHAR},
+      subtitle = #{subtitle,jdbcType=VARCHAR},
+      h5_url = #{h5Url,jdbcType=VARCHAR},
+      state = #{state,jdbcType=TINYINT},
+      onshelf_day = #{onshelfDay,jdbcType=TIMESTAMP},
+      offshelf_day = #{offshelfDay,jdbcType=TIMESTAMP},
+      create_operator = #{createOperator,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateitemBodyByPrimaryKeySelective">
+
+    update item
+    <set>
+      <if test="code != null">
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="brand != null">
+        brand = #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryDictId != null">
+        category_dict_id = #{categoryDictId,jdbcType=BIGINT},
+      </if>
+      <if test="price != null">
+        price = #{price,jdbcType=DECIMAL},
+      </if>
+      <if test="ratio != null">
+        ratio = #{ratio,jdbcType=INTEGER},
+      </if>
+      <if test="expireDate != null">
+        expire_date = #{expireDate,jdbcType=INTEGER},
+      </if>
+      <if test="releaseClient != null">
+        release_client = #{releaseClient,jdbcType=TINYINT},
+      </if>
+      <if test="releasePlace != null">
+        release_place = #{releasePlace,jdbcType=TINYINT},
+      </if>
+      <if test="topOrder != null">
+        top_order = #{topOrder,jdbcType=TINYINT},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="navigationPicUrl != null">
+        navigation_pic_url = #{navigationPicUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="topPicUrl != null">
+        top_pic_url = #{topPicUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="isQuote != null">
+        is_quote = #{isQuote,jdbcType=TINYINT},
+      </if>
+      <if test="quoteUrl != null">
+        quote_url = #{quoteUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="titlePic != null">
+        title_pic = #{titlePic,jdbcType=VARCHAR},
+      </if>
+      <if test="subtitle != null">
+        subtitle = #{subtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="h5Url != null">
+        h5_url = #{h5Url,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=TINYINT},
+      </if>
+      <if test="onshelfDay != null">
+        onshelf_day = #{onshelfDay,jdbcType=TIMESTAMP},
+      </if>
+      <if test="offshelfDay != null">
+        offshelf_day = #{offshelfDay,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createOperator != null">
+        create_operator = #{createOperator,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="body != null">
+        body = #{body,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+
+
+  </update>
+  <update id="offshelfItem">
+
+      update item set state = #{state}
+        where id = #{itemId}
+
+  </update>
+</mapper>

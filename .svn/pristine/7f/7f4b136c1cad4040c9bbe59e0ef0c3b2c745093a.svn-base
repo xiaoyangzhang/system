@@ -1,0 +1,54 @@
+
+spring:
+  datasource:
+    username: writer
+    password: xjk123456!
+    url: jdbc:mysql://172.30.0.217:3306/xjk?useUnicode=true&characterEncoding=utf-8
+  redis:
+      host: 172.30.0.218
+      port: 6379
+      password: 123456
+
+eureka: 
+  client:
+    service-url:
+      defaultZone: http://172.30.0.218:8000/eureka/
+#    healthcheck:
+#      enabled: true
+#       defaultZone: http://localhost:8760/eureka/ # ,http://peer2:8761/eureka/
+#       defaultZone: http://localhost:8760/eureka/ # ,http://peer2:8761/eureka/
+#    register-with-eureka: false
+#       defaultZone: http://localhost:8760/eureka/ # ,http://peer2:8761/eureka/
+#    healthcheck:
+#      enabled: true
+#       defaultZone: http://localhost:8760/eureka/ # ,http://peer2:8761/eureka/
+#       defaultZone: http://localhost:8760/eureka/ # ,http://peer2:8761/eureka/
+#    register-with-eureka: false
+#       defaultZone: http://localhost:8760/eureka/ # ,http://peer2:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ipAddress}:${server.port}
+    lease-expiration-duration-in-seconds: 30
+    lease-renewal-interval-in-seconds: 30
+url:
+  patientUrl: http://patient/
+  dialogUrl: http://dialog-zxy/
+  gateWay: https://test.cis95132.com:8000/
+alipay:
+  APPID: 2017101109249326
+#  PARTNER: 2088511511698621
+  PARTNER: 2088821323908671
+  PRIVATEKEY: MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBANpRcW5dHbjzo+SunaAP/shR6AsOk5NI/VlRdQVYQgJNWsKYgpHdcvXq5ZnmvhvFL+RU7bLOHYD2lHDqZq+HtQplmM2Xz+8t7ZuNR+5SfoWWo/yFwWppP8u/h5g2k51zF82mk5M8fOzinE4H952LtAWJ0gUGRKHmiq4DhvgxDul1AgMBAAECgYEAhXLbH1cT4AYt3I9QEpM0bkaCzJ9wXctz8bD1EvtL/hRCskh/J6JxrxiSmGyPMHJsP+oaEf4j0rznJ85gTlNpuXuKgOZnpsSCmMCSSeTmidx8vwEBblG/UN7IfKS9iDPbwMp5z4z9syycaMIv4N5+NuoGg9JN77uAkMOlHCs3MgECQQD89ysYYJSFAz0n/ITEM+IL5P2YNqb4vCO4QSYfUbhZY0QkHWOo34rsnRlgthlMHsAsOxGdNfCJOe77FcdQjkaVAkEA3O/gTNHCT7JUWvK/raCcUHLm6hAY7EX8I295zXj5ab0yykyB5I+AamhH6QWhtK/YmWURdzUSy94gRKdH1Em/YQJAHqTGeK6Cb1aEGwrw/l+Wm4BC5CSCt5D69sAVoSeiIFnxEDrrLrLdvmoNf/SvPdRfzTvel1/IYqc89vedbHm/vQJABFopVfoP1NgTd1Mu2XG/goow6E124DikteH9SUHnz+BtPrTxHhqBkhcJy5pTzCZmoubtyCZgf2mZwyB0dscZIQJBAN+89uUq2ctgpZtiqqyRL+6z3ma3e/oUcqsVSUYnN7JOyj8zaO+51NzY6PsR6OStujHVZ6TQq5X6ScZhspxtY1k=
+  SIGNTYPE: RSA
+  PUBLICKEY: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDaUXFuXR2486Pkrp2gD/7IUegLDpOTSP1ZUXUFWEICTVrCmIKR3XL16uWZ5r4bxS/kVO2yzh2A9pRw6mavh7UKZZjNl8/vLe2bjUfuUn6FlqP8hcFqaT/Lv4eYNpOdcxfNppOTPHzs4pxOB/edi7QFidIFBkSh5oquA4b4MQ7pdQIDAQAB
+  ALIPAY_PUBLICKEY: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDDI6d306Q8fIfCOaTXyiUeJHkrIvYISRcc73s3vF1ZT7XN8RNPwJxo8pWaJMmvyTn9N4HQ632qJBVHf8sxHi/fEsraprwCtzvzQETrNRwVxLO5jVmRGi60j8Ue1efIlzPXV9je9mkjzOmdssymZkh2QhUrCmZYI/FCEa3/cNMW0QIDAQAB
+  NOTIFYURL: https://test.cis95132.com:8000/system/alipay/notify
+
+weixinpay:
+  APPID: wxdb479b4baf251e33
+#  MCHID: 1480131802
+  MCHID: 1490482872
+  NOTIFYURL: https://test.cis95132.com:8000/system/wxpay/notify
+#  ENCODINGAESKEY: mQmZ9XMkC1x0qDiwvXnStxDWoC99J5rB
+  ENCODINGAESKEY: 466a358a57f75d0eb06b1c8da5920a16
+  certPath: /testRelease/apiclient_cert.p12

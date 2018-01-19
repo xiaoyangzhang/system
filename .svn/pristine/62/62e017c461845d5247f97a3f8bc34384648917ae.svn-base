@@ -1,0 +1,76 @@
+package com.yhyt.health.service.api;
+
+import com.yhyt.health.dao.SysServiceTaskMapper;
+import com.yhyt.health.model.SysServiceTask;
+import com.yhyt.health.model.dto.ItemBodyVo;
+import com.yhyt.health.model.dto.ItemListVo;
+import com.yhyt.health.model.dto.ServiceTaskVo;
+import com.yhyt.health.spring.AppResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author gsh
+ * @create 2018-01-02 14:07
+ **/
+@Service
+public class ItemApiImpl implements ItemApi{
+
+    @Autowired
+    private SysServiceTaskMapper sysServiceTaskMapper;
+
+    @Override
+    public AppResult getItems(Long departmentId, String doctorState) {
+
+        ItemBodyVo itemBodyVo = new ItemBodyVo();
+        List<ItemListVo> itemListVos = sysServiceTaskMapper.getItems(null, departmentId, Byte.valueOf(doctorState));
+        if (null != itemListVos) {
+            itemBodyVo.setTasks(itemListVos);
+        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("tasks", itemListVos);
+        map.put("noConfirmedCount", sysServiceTaskMapper.getItemCountsByState(null, departmentId, Byte.valueOf("1")));
+        map.put("dealingCount", sysServiceTaskMapper.getItemCountsByState(null, departmentId, Byte.valueOf("2")));
+        map.put("confirmedCount", sysServiceTaskMapper.getItemCountsByState(null, departmentId, Byte.valueOf("3")));
+        AppResult appResult = new AppResult("200", "成功", map);
+        return appResult;
+    }
+
+
+    @Override
+    public AppResult getItem(Long taskId) {
+        ServiceTaskVo serviceTaskVo = sysServiceTaskMapper.getItem(taskId);
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("task", serviceTaskVo);
+        map.put("patientId", serviceTaskVo.getPatientId());
+        AppResult appResult = new AppResult("200", "成功", map);
+        return appResult;
+    }
+
+    @Override
+    public AppResult updateItemState(Long taskId, String doctorState) {
+        AppResult appResult = new AppResult("200", "成功", null);
+        SysServiceTask sysServiceTask = sysServiceTaskMapper.selectByPrimaryKey(taskId);
+        //如果状态和数据库一致直接返回
+        if (Byte.valueOf(doctorState).equals(sysServiceTask.getDoctorState())) {
+            return appResult;
+        }
+        sysServiceTask.setId(taskId);
+        sysServiceTask.setDoctorState(Byte.valueOf(doctorState));
+        int result = sysServiceTaskMapper.updateByPrimaryKeySelective(sysServiceTask);
+        if (result <= 0) {
+            appResult = new AppResult("500", "重复操作", null);
+        }
+        //如果是拒绝，则进行退款操作
+        if ("4".equals(doctorState)) {
+            //调用退款接口
+
+
+        }
+        return appResult;
+    }
+}

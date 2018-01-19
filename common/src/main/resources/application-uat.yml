@@ -1,0 +1,25 @@
+
+spring:
+  datasource:
+    username: xjk
+    password: xjk
+    url: jdbc:mysql://10.117.130.208:3336/xjk?useUnicode=true&characterEncoding=utf-8
+  redis:
+      host: 10.117.130.210
+      port: 6379
+      password:
+
+eureka: 
+  client:
+    service-url:
+      defaultZone: http://10.117.130.204:8000/eureka/,http://10.117.130.210:8000/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ipAddress}:${server.port}
+    lease-expiration-duration-in-seconds: 30
+    lease-renewal-interval-in-seconds: 30
+url:
+  patientUrl: http://patient/
+  systemUrl: http://system/
+  dialogUrl: http://dialog/
+  gateWay: https://api.cis95132.com:8000/

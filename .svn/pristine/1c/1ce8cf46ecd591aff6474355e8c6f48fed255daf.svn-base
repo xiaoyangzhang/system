@@ -1,0 +1,15 @@
+package com.yhyt.health.service;
+
+import java.util.List;
+
+import com.yhyt.health.model.Dictionary;
+
+public interface DictionaryService {
+
+	List<Dictionary> findDictionaryList(Dictionary dictionary);
+
+	Dictionary editDictionary(Dictionary dictionary);
+
+	void delete(Long id);
+
+}

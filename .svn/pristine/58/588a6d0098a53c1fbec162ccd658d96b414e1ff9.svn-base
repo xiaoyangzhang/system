@@ -1,0 +1,293 @@
+package com.yhyt.health.service.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alipay.api.AlipayApiException;
+import com.alipay.api.AlipayClient;
+import com.alipay.api.DefaultAlipayClient;
+import com.alipay.api.request.AlipayTradeRefundRequest;
+import com.alipay.api.response.AlipayTradeRefundResponse;
+import com.yhyt.health.HealthConstants;
+import com.yhyt.health.OrderConstants;
+import com.yhyt.health.dao.BaseDao;
+import com.yhyt.health.dao.OrderDetailMapper;
+import com.yhyt.health.dao.OrderMapper;
+import com.yhyt.health.dao.PayDetailMapper;
+import com.yhyt.health.model.Order;
+import com.yhyt.health.model.OrderDetail;
+import com.yhyt.health.model.OrderVo;
+import com.yhyt.health.model.PayDetail;
+import com.yhyt.health.service.ClientCustomSSL;
+import com.yhyt.health.service.MessageService;
+import com.yhyt.health.spring.AppResult;
+import com.yhyt.health.util.BusinessException;
+import com.yhyt.health.util.MD5Util;
+import org.apache.commons.lang3.StringUtils;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class RefundServiceImpl extends BaseServiceImpl<PayDetail> {
+
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
+	@Autowired
+	private PayDetailMapper payDetailMapper;
+
+	@Autowired
+	private OrderMapper orderMapper;
+
+	@Autowired
+	private OrderDetailMapper orderDetailMapper;
+	@Value("${weixinpay.certPath}")
+	private String certPath;
+	@Autowired
+	private MessageService messageService;
+
+	public  String getCertPath() {
+		return certPath;
+	}
+
+	@Override
+	public BaseDao<PayDetail> getBaseDao() {
+		return payDetailMapper;
+	}
+
+	//退款失败，事务回滚
+	@Transactional
+	public void RollBackOrder(PayDetail payDetail,AppResult result) {
+		//回滚订单
+		Map<String,Object> params = new HashMap<String,Object>();
+		params.put("orderNo",payDetail.getOrderid());
+		List<Order> orderList = orderMapper.getOrder(params);
+		params.put("state", 4);
+		params.put("id", orderList.get(0).getId());
+		params.put("remainCount", 1);
+		Order order = new Order();
+//		order.setState((byte) 2);
+		order.setState((byte) 6);
+		order.setUpdateTime(new Date());
+		int i2 = this.orderMapper.updateAndCheck(order, params);
+		params.clear();
+		params.put("type", 4);
+		params.put("orderId", orderList.get(0).getId());
+		OrderDetail orderDetail = new OrderDetail();
+		orderDetail.setType((byte) 1);
+		int count2 = this.orderDetailMapper.updateAndCheck(orderDetail, params);
+		payDetailMapper.deleteByOrderIdAndState(payDetail.getOrderid(),"4,7");
+		payDetail.setId(null);
+		payDetail.setParams(result.getMsg());
+		payDetail.setState(6);//退款失败
+//		payDetail.setSend("");
+		this.edit(payDetail);
+	}
+
+	//	@Transactional(isolation=Isolation.READ_COMMITTED)
+	@Async
+	public AppResult weixinRefund(PayDetail payDetail) {
+		long startTime = System.currentTimeMillis();
+		logger.info("退款开始，startTime={}",startTime);
+		AppResult result  = new AppResult();
+		try {
+			BigDecimal totalFee = payDetail.getMoney().multiply(new BigDecimal(100)).setScale(0, BigDecimal.ROUND_HALF_EVEN);
+			Map<String, String> params = new HashMap<String, String>();
+			params.put("appid", WinxinPayUtil.APPID);
+			params.put("mch_id", WinxinPayUtil.MCHID);
+			String nonceStr = WinxinPayUtil.getNonceStr();
+			params.put("nonce_str", nonceStr);
+			params.put("out_trade_no", payDetail.getPayorderid());
+			params.put("out_refund_no", payDetail.getPayorderid());
+			params.put("refund_fee", totalFee.toString());
+			params.put("total_fee", totalFee.toString());
+			String signStr = WinxinPayUtil.getSignContent(params) + "&key=" + WinxinPayUtil.ENCODINGAESKEY;
+			logger.info("微信退款签名串:"+signStr);
+			String sign = MD5Util.MD5(signStr,"UTF-8").toUpperCase();
+			params.put("sign", sign);
+			String xml = "<xml><appid>%1$s</appid><mch_id>%2$s</mch_id><nonce_str>%3$s</nonce_str><out_refund_no>%4$s</out_refund_no><out_trade_no>%5$s</out_trade_no><refund_fee>%6$s</refund_fee><total_fee>%7$s</total_fee><sign>%8$s</sign></xml>";
+			String requesetBody = String.format(xml, WinxinPayUtil.APPID, WinxinPayUtil.MCHID, nonceStr, payDetail.getPayorderid(),payDetail.getPayorderid(),totalFee.toString(),totalFee.toString(), sign);
+			logger.info("微信退款请求参数，params:{}", JSON.toJSONString(requesetBody));
+			String response = ClientCustomSSL.refundHttpRequest(requesetBody, getCertPath());
+			long middleTime = System.currentTimeMillis();
+			logger.info("退款中期，middleTime={}",middleTime-startTime);
+			logger.info("微信退款返回结果，result:{}",JSON.toJSONString(response));
+			Document document = null;
+			Element root = null;
+			try {
+				document = DocumentHelper.parseText(response);
+				root = document.getRootElement();
+			} catch (DocumentException e) {
+				logger.info("微信退款返回结果异常:" , e);
+				throw new BusinessException(OrderConstants.EXCEPTION_OUTINTEFACE, "微信退款接口异常");
+			}
+//			result = new AppResult();
+			String returnCode = root.element("return_code").getTextTrim();
+			if ("SUCCESS".equals(returnCode)) {
+				String result_code = root.element("result_code").getTextTrim();
+				if ("SUCCESS".equals(result_code)) {
+//					Map<String,Object> params1 = new HashMap<String,Object>();
+//					params1.put("orderNo",payDetail.getOrderid());
+
+					String refund_id = root.element("refund_id").getTextTrim();
+					try {
+						// 微信支付app返回 日志记录
+						PayDetail refundPayDetail = new PayDetail();
+						refundPayDetail.setParams(response);
+						refundPayDetail.setOrderid(payDetail.getOrderid());
+						refundPayDetail.setPayorderid(payDetail.getPayorderid());
+						refundPayDetail.setChannel("weixinpay");
+						refundPayDetail.setMoney(totalFee.divide(new BigDecimal(100)));
+						refundPayDetail.setState(8);//平台受理退款成功
+						refundPayDetail.setTranceid(refund_id);
+						refundPayDetail.setSend(params.toString());
+						refundPayDetail.setUpdateTime(new Date());
+						refundPayDetail.setCareateTime(new Date());
+						OrderVo order = orderMapper.selectByOrderNo(payDetail.getOrderid());
+						messageService.sendMessage(order.getPatientId(),"1","新健康","您有"+order.getHospital()+order.getDepartment()+order.getItemName()+"服务退款已成功，请查看。");
+						logger.info("退款成功，流水记录，payDetail:{}",JSON.toJSONString(refundPayDetail));
+						edit(refundPayDetail);
+						return result;
+					} catch (Exception e) {
+						logger.error("日志记录异常("+ JSONObject.toJSONString(payDetail)+"):" + e.getMessage());
+					}
+				} else {
+					String err_code = root.element("err_code").getTextTrim();
+					String err_code_des = root.element("err_code_des").getTextTrim();
+					result.setCode(err_code);
+					result.setMsg(err_code_des);
+					RollBackOrder(payDetail,result);
+					//				return result;
+					//				throw new BusinessException(OrderConstants.EXCEPTION_PAY_RETURN, err_code_des);
+				}
+			} else {
+				String returnMsg = root.element("return_msg").getTextTrim();
+				result.setCode("fail");
+				result.setMsg(returnMsg);
+				RollBackOrder(payDetail,result);
+				//			throw new BusinessException(OrderConstants.EXCEPTION_PAY_CONNECT, returnMsg);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("微信退款失败，error:{}",e);
+			result.setMsg(e.getMessage());
+			RollBackOrder(payDetail,result);
+
+		}
+		long endTime = System.currentTimeMillis();
+		logger.info("退款结束，endTime={}",endTime-startTime);
+		OrderVo order = orderMapper.selectByOrderNo(payDetail.getOrderid());
+		messageService.sendMessage(order.getPatientId(),"1","新健康","您有"+order.getHospital()+order.getDepartment()+order.getItemName()+"服务退款失败，请联系客服电话：400-819-0503。");
+		return result;
+	}
+
+
+	//	@Transactional(isolation=Isolation.READ_COMMITTED)
+	@Async
+	public AppResult alipayRefund(PayDetail payDetail){
+		AppResult result  = new AppResult();
+		try {
+			AlipayClient alipayClient = new DefaultAlipayClient("https://openapi.alipay.com/gateway.do",AliPayUtil.APPID,AliPayUtil.PRIVATEKEY,"json","UTF-8",AliPayUtil.ALIPAY_PUBLICKEY,AliPayUtil.SIGNTYPE);
+			AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
+			request.setBizContent("{" +
+					"\"out_trade_no\":\""+payDetail.getPayorderid()+"\"," +
+					//			"\"trade_no\":\""+payDetail.getTranceid()+"\"," +
+					"\"refund_amount\":"+payDetail.getMoney()+"," +
+					"\"refund_reason\":\"正常退款\"," +
+					"\"out_request_no\":\""+payDetail.getId()+"\"" +
+					"  }");
+			AlipayTradeRefundResponse response = null;
+			logger.info("refund request,request:{}", JSON.toJSONString(request));
+
+			try {
+				response = alipayClient.execute(request);
+				logger.info("refund response,result:{}", JSON.toJSONString(response));
+			} catch (AlipayApiException e) {
+				logger.error("refund error,error:{}",e);
+				if(response==null||!(e.getCause() instanceof IOException)){
+					throw new BusinessException(HealthConstants.EXCEPTION_OUTINTEFACE,e.getMessage());
+				}
+			}
+//			result = new AppResult();
+			if ("10000".equals(response.getCode())){
+				if (StringUtils.isEmpty(response.getSubCode())){
+					OrderVo order = orderMapper.selectByOrderNo(payDetail.getOrderid());
+					messageService.sendMessage(order.getPatientId(),"1","新健康","您有"+order.getHospital()+order.getDepartment()+order.getItemName()+"服务退款已成功，请查看。");
+
+					try {
+						PayDetail refundDetail = new PayDetail();
+						refundDetail.setParams(request.getBizContent());
+						refundDetail.setOrderid(payDetail.getOrderid());
+						refundDetail.setPayorderid(payDetail.getPayorderid());
+						refundDetail.setChannel("alipay");
+						refundDetail.setMoney(new BigDecimal(response.getRefundFee()));
+						refundDetail.setState(8);//平台受理退款成功
+						refundDetail.setTranceid(response.getTradeNo());
+						refundDetail.setUpdateTime(new Date());
+						refundDetail.setCareateTime(new Date());
+						edit(refundDetail);
+						return result;
+					} catch (Exception e) {
+						logger.error("refund detail edit error,error:{}",e);
+					}
+				}else {
+					result.setCode(response.getSubCode());
+					result.setMessage(response.getSubMsg());
+					RollBackOrder(payDetail,result);
+				}
+			}else {
+				result.setCode(response.getCode());
+				result.setMessage(response.getMsg());
+				RollBackOrder(payDetail,result);
+			}
+
+		} catch (BusinessException e) {
+			e.printStackTrace();
+			logger.error("支付宝退款失败，error:{}",e);
+			result.setMsg(e.getMessage());
+			RollBackOrder(payDetail,result);
+			//回滚订单
+			/*Map<String,Object> params = new HashMap<String,Object>();
+			params.put("orderNo",payDetail.getOrderid());
+			List<Order> orderList = orderMapper.getOrder(params);
+			params.put("state", 4);
+			params.put("id", orderList.get(0).getId());
+			params.put("remainCount", 1);
+			Order order = new Order();
+			order.setState((byte) 2);
+			order.setUpdateTime(new Date());
+			int i = this.orderMapper.updateAndCheck(order, params);
+			params.clear();
+			params.put("type", 4);
+			params.put("orderId", orderList.get(0).getId());
+			OrderDetail orderDetail = new OrderDetail();
+			orderDetail.setType((byte) 1);
+			int count = this.orderDetailMapper.updateAndCheck(orderDetail, params);
+			payDetailMapper.deleteByOrderIdAndState(payDetail.getOrderid(),"4,7");
+			payDetail.setId(null);
+			payDetail.setParams(result.getMsg());
+			payDetail.setState(6);//退款失败
+			payDetail.setSend("");
+			this.payService.edit(payDetail);*/
+		}
+		OrderVo order = orderMapper.selectByOrderNo(payDetail.getOrderid());
+		messageService.sendMessage(order.getPatientId(),"1","新健康","您有"+order.getHospital()+order.getDepartment()+order.getItemName()+"服务退款失败，请联系客服电话：400-819-0503。");
+
+		return result;
+	}
+
+}

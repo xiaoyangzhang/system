@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.QuestionnaireItemMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.QuestionnaireItem">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="questionnaire_id" jdbcType="BIGINT" property="questionnaireId" />
+    <result column="type" jdbcType="TINYINT" property="type" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="answer_a" jdbcType="VARCHAR" property="answerA" />
+    <result column="answer_b" jdbcType="VARCHAR" property="answerB" />
+    <result column="answer_c" jdbcType="VARCHAR" property="answerC" />
+    <result column="answer_d" jdbcType="VARCHAR" property="answerD" />
+    <result column="answer_e" jdbcType="VARCHAR" property="answerE" />
+    <result column="answer_f" jdbcType="VARCHAR" property="answerF" />
+    <result column="min_description" jdbcType="VARCHAR" property="minDescription" />
+    <result column="ratio_scope" jdbcType="INTEGER" property="ratioScope" />
+    <result column="max_description" jdbcType="VARCHAR" property="maxDescription" />
+    <result column="is_necessary" jdbcType="TINYINT" property="isNecessary" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <resultMap id="questionnaireAppCard" type="com.yhyt.health.model.dto.QuestionnaireAppCard" >
+    <result column="sub_title" jdbcType="VARCHAR" property="subTitle" />
+    <result column="comment" jdbcType="VARCHAR" property="comment" />
+    <result column="state" jdbcType="TINYINT" property="state" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="questionnaire_id" property="questionnaireId" jdbcType="BIGINT"/>
+    <result column="is_filled" property="isFilled" jdbcType="TINYINT"/>
+    <result column="questionnaire_doctor_patientId" property="questionnaireDoctorPatientId" jdbcType="BIGINT"/>
+    <result column="questionnaire_title" property="questionnaireTitle" jdbcType="VARCHAR"/>
+    <collection property="questionnaireItems" ofType="com.yhyt.health.model.QuestionnaireItem"
+                resultMap="BaseResultMap"/>
+
+
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, questionnaire_id, type, title, answer_a, answer_b, answer_c, answer_d, answer_e, 
+    answer_f, min_description, ratio_scope, max_description, is_necessary, update_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from questionnaire_item
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from questionnaire_item
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.QuestionnaireItem">
+    insert into questionnaire_item (id, questionnaire_id, type, 
+      title, answer_a, answer_b, 
+      answer_c, answer_d, answer_e, 
+      answer_f, min_description, ratio_scope, 
+      max_description, is_necessary, update_time
+      )
+    values (#{id,jdbcType=BIGINT}, #{questionnaireId,jdbcType=BIGINT}, #{type,jdbcType=TINYINT}, 
+      #{title,jdbcType=VARCHAR}, #{answerA,jdbcType=VARCHAR}, #{answerB,jdbcType=VARCHAR}, 
+      #{answerC,jdbcType=VARCHAR}, #{answerD,jdbcType=VARCHAR}, #{answerE,jdbcType=VARCHAR}, 
+      #{answerF,jdbcType=VARCHAR}, #{minDescription,jdbcType=VARCHAR}, #{ratioScope,jdbcType=INTEGER}, 
+      #{maxDescription,jdbcType=VARCHAR}, #{isNecessary,jdbcType=TINYINT}, #{updateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.QuestionnaireItem">
+    insert into questionnaire_item
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="questionnaireId != null">
+        questionnaire_id,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="answerA != null">
+        answer_a,
+      </if>
+      <if test="answerB != null">
+        answer_b,
+      </if>
+      <if test="answerC != null">
+        answer_c,
+      </if>
+      <if test="answerD != null">
+        answer_d,
+      </if>
+      <if test="answerE != null">
+        answer_e,
+      </if>
+      <if test="answerF != null">
+        answer_f,
+      </if>
+      <if test="minDescription != null">
+        min_description,
+      </if>
+      <if test="ratioScope != null">
+        ratio_scope,
+      </if>
+      <if test="maxDescription != null">
+        max_description,
+      </if>
+      <if test="isNecessary != null">
+        is_necessary,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="questionnaireId != null">
+        #{questionnaireId,jdbcType=BIGINT},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=TINYINT},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="answerA != null">
+        #{answerA,jdbcType=VARCHAR},
+      </if>
+      <if test="answerB != null">
+        #{answerB,jdbcType=VARCHAR},
+      </if>
+      <if test="answerC != null">
+        #{answerC,jdbcType=VARCHAR},
+      </if>
+      <if test="answerD != null">
+        #{answerD,jdbcType=VARCHAR},
+      </if>
+      <if test="answerE != null">
+        #{answerE,jdbcType=VARCHAR},
+      </if>
+      <if test="answerF != null">
+        #{answerF,jdbcType=VARCHAR},
+      </if>
+      <if test="minDescription != null">
+        #{minDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="ratioScope != null">
+        #{ratioScope,jdbcType=INTEGER},
+      </if>
+      <if test="maxDescription != null">
+        #{maxDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="isNecessary != null">
+        #{isNecessary,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.QuestionnaireItem">
+    update questionnaire_item
+    <set>
+      <if test="questionnaireId != null">
+        questionnaire_id = #{questionnaireId,jdbcType=BIGINT},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=TINYINT},
+      </if>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="answerA != null">
+        answer_a = #{answerA,jdbcType=VARCHAR},
+      </if>
+      <if test="answerB != null">
+        answer_b = #{answerB,jdbcType=VARCHAR},
+      </if>
+      <if test="answerC != null">
+        answer_c = #{answerC,jdbcType=VARCHAR},
+      </if>
+      <if test="answerD != null">
+        answer_d = #{answerD,jdbcType=VARCHAR},
+      </if>
+      <if test="answerE != null">
+        answer_e = #{answerE,jdbcType=VARCHAR},
+      </if>
+      <if test="answerF != null">
+        answer_f = #{answerF,jdbcType=VARCHAR},
+      </if>
+      <if test="minDescription != null">
+        min_description = #{minDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="ratioScope != null">
+        ratio_scope = #{ratioScope,jdbcType=INTEGER},
+      </if>
+      <if test="maxDescription != null">
+        max_description = #{maxDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="isNecessary != null">
+        is_necessary = #{isNecessary,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.QuestionnaireItem">
+    update questionnaire_item
+    set questionnaire_id = #{questionnaireId,jdbcType=BIGINT},
+      type = #{type,jdbcType=TINYINT},
+      title = #{title,jdbcType=VARCHAR},
+      answer_a = #{answerA,jdbcType=VARCHAR},
+      answer_b = #{answerB,jdbcType=VARCHAR},
+      answer_c = #{answerC,jdbcType=VARCHAR},
+      answer_d = #{answerD,jdbcType=VARCHAR},
+      answer_e = #{answerE,jdbcType=VARCHAR},
+      answer_f = #{answerF,jdbcType=VARCHAR},
+      min_description = #{minDescription,jdbcType=VARCHAR},
+      ratio_scope = #{ratioScope,jdbcType=INTEGER},
+      max_description = #{maxDescription,jdbcType=VARCHAR},
+      is_necessary = #{isNecessary,jdbcType=TINYINT},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByQuestionnaireId" parameterType="long" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/> from questionnaire_item where questionnaire_id = #{questionnaireId,jdbcType=BIGINT}
+  </select>
+  <select id="selectQuestionnaireCard" parameterType="map" resultMap="questionnaireAppCard">
+    SELECT DISTINCT
+    q.id questionnaire_id,
+    q.title questionnaire_title,
+    q.sub_title,
+    q.comment,
+    q.state,
+    q.update_time,
+	qi.*,'1' is_filled
+    <if test="questionnaireDoctorPatientId != null">
+     ,qdp.id questionnaire_doctor_patientId
+    </if>
+    FROM
+        questionnaire q
+    LEFT JOIN questionnaire_item qi ON q.id = qi.questionnaire_id
+    LEFT JOIN questionnaire_doctor_patient qdp ON q.id = qdp.questionnaire_id
+    WHERE  1=1
+    <if test="questionnaireId != null">
+      AND q.id = #{questionnaireId}
+    </if>
+    <if test="questionnaireDoctorPatientId != null">
+      AND qdp.id = #{questionnaireDoctorPatientId}
+    </if>
+    ORDER BY qi.id
+  </select>
+</mapper>

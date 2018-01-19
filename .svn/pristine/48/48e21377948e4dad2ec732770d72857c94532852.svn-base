@@ -1,0 +1,17 @@
+package com.yhyt.health.dao;
+
+import com.yhyt.health.model.SysServiceTask;
+
+public interface SysServiceTaskMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(SysServiceTask record);
+
+    int insertSelective(SysServiceTask record);
+
+    SysServiceTask selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(SysServiceTask record);
+
+    int updateByPrimaryKey(SysServiceTask record);
+}

@@ -1,0 +1,82 @@
+package com.yhyt.health.controller;
+
+import com.yhyt.health.model.QuestionnaireDept;
+import com.yhyt.health.model.QuestionnaireDisease;
+import com.yhyt.health.model.QuestionnaireQuery;
+import com.yhyt.health.model.dto.QuestionnaireDTO;
+import com.yhyt.health.service.QuestionnaireService;
+import com.yhyt.health.util.Page;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+public class QuestionnaireController {
+
+    private static Logger logger = LoggerFactory.getLogger(QuestionnaireController.class);
+
+    @Autowired
+    private QuestionnaireService questionnaireService;
+    @PostMapping("/questionnaire/add")
+    public long addQuestionnaire(@RequestBody QuestionnaireDTO questionnaireDTO){
+        return questionnaireService.addQuestionnaire(questionnaireDTO);
+    }
+
+//    @DeleteMapping("/questionnaire/delete/{id}")
+//    public int deleteQuestionnaire(@PathVariable("id")Long id){
+//        return questionnaireService.deleteQuestionnaire(id);
+//    }
+
+    @PatchMapping("/update/state/{id}/{state}")
+    public int updateState(@PathVariable("id")Long id,@PathVariable("state")Byte state) /*throws BusinessException*/{
+        return questionnaireService.updateState(id,state);
+    }
+
+    @GetMapping("/questionnaire/query/{id}")
+    public QuestionnaireDTO queryQuestionnaireById(@PathVariable("id")Long id){
+        return questionnaireService.selectById(id);
+    }
+
+    /**
+     * 问卷添加科室标签#选中功能
+     * @param id
+     * @return
+     */
+    @GetMapping("/questionnaire/dept/query/{id}")
+    public List<QuestionnaireDept> queryQuestionnaireDeptById(@PathVariable("id")Long id){
+        return questionnaireService.selectQuestionnaireDeptById(id);
+    }
+
+    @GetMapping("/questionnaire/disease/query/{id}")
+    public List<QuestionnaireDisease> queryQuestionnaireDiseaseById(@PathVariable("id")Long id){
+        return questionnaireService.selectQuestionnaireDiseaseById(id);
+    }
+
+    @GetMapping("/questionnaire/list")
+    public Page<QuestionnaireDTO> queryQuestionnaireListPage( QuestionnaireQuery questionnaireQuery){
+        return questionnaireService.selectQuestionnaireListPage(questionnaireQuery);
+    }
+
+    @DeleteMapping("/questionnaire/dept/delete/{id}")
+    public int deleteQuestionnaireDept(@PathVariable("id")Long id){
+        return questionnaireService.deleteQuestionnaireDept(id);
+    }
+
+    @DeleteMapping("/questionnaire/disease/delete/{id}")
+    public int deleteQuestionnaireDisease(@PathVariable("id")Long id){
+        return questionnaireService.deleteQuestionnaireDisease(id);
+    }
+
+    @PostMapping("/questionnaire/dept/add")
+    public int addQuestionnaireDept(@RequestBody List<QuestionnaireDept> questionnaireDepts){
+        return questionnaireService.addQuestionnaireDeptBatch(questionnaireDepts);
+    }
+
+    @PostMapping("/questionnaire/disease/add")
+    public int addQuestionnaireDisease(@RequestBody List<QuestionnaireDisease> questionnaireDiseases){
+        return questionnaireService.addQuestionnaireDiseaseBatch(questionnaireDiseases);
+    }
+}

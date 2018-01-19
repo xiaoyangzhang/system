@@ -1,0 +1,280 @@
+package com.yhyt.health.service.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.yhyt.health.config.PathConfiguration;
+import com.yhyt.health.contans.ResultCode;
+import com.yhyt.health.dao.*;
+import com.yhyt.health.model.*;
+import com.yhyt.health.result.AppResult;
+import com.yhyt.health.result.ResultStatus;
+import com.yhyt.health.service.OrderService;
+import com.yhyt.health.util.BusinessException;
+import com.yhyt.health.util.OrderUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.*;
+
+@Service
+public class OrderServiceImpl implements OrderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+    private static final String CARD_PREFIX = "No.";
+
+    @Autowired
+    private OrderMapper orderMapper;
+
+
+    @Autowired
+    private RedisService redisService;
+
+    @Autowired
+    private GoodsMapper goodsMapper;
+
+    @Autowired
+    private OrderDetailMapper orderDetailMapper;
+
+    @Autowired
+    private PayDetailMapper payDetailMapper;
+
+    @Resource(name = "loadBalanced")
+    private RestTemplate restTemplate;
+
+    @Autowired
+    private PathConfiguration pathConfiguration;
+
+    @Autowired
+    private OrderDepartmentDetailMapper orderDepartmentDetailMapper;
+
+    @Override
+    @Transactional
+    public AppResult getOrder(Order der) {
+
+        AppResult appResult = null;
+        try {
+            Map<String, Object> map = new HashMap<>();
+            if (null != der.getId()) {
+                map.put("orderId", der.getId());
+            } else {
+                map.put("states", Arrays.asList('2', '4', '6', '7'));
+                if (der.getPatientIdOwner() != null)
+                    map.put("patientId", der.getPatientIdOwner());
+            }
+            //	der.setCreateTime(new Date());
+            List<Order> ll = orderMapper.getOrder(map);
+            logger.info("获取订单列表，orderList:{}", JSON.toJSONString(ll));
+            appResult = new AppResult();
+            appResult.getStatus().setCode(ResultCode.SUCCESS.val());
+            appResult.getStatus().setMessage(ResultCode.SUCCESS.msg());
+
+            if (null != der.getId()) {
+                appResult.getBody().put("order", ll.get(0));
+                Map<String, Object> criterias = new HashMap<>();
+                criterias.put("orderId", ll.get(0).getId());
+                List<OrderDetail> orderDetails = orderDetailMapper.findPersistableList(criterias);
+                logger.info("获取订单详情列表，orderDetailList:{}", JSON.toJSONString(orderDetails));
+
+                appResult.getBody().put("orderDetails", orderDetails);
+            } else {
+                appResult.getBody().put("list", ll);
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            appResult.getStatus().setCode(ResultCode.SYS_ERROR.val());
+            appResult.getStatus().setMessage("未找到订单");
+        }
+        logger.info("返回值，orderDetailList:{}", JSON.toJSONString( appResult));
+
+        return appResult;
+
+    }
+
+    @Override
+    @Transactional
+    public AppResult getOrderRemainCount(Order der) {
+
+        AppResult appResult = null;
+        try {
+            Map<String, Object> map = new HashMap<>();
+            if (null != der.getId()) {
+                map.put("orderId", der.getId());
+            }
+            //	der.setCreateTime(new Date());
+            List<Order> ll = orderMapper.getOrder(map);
+            appResult = new AppResult();
+            appResult.getStatus().setCode(ResultCode.SUCCESS.val());
+            appResult.getStatus().setMessage(ResultCode.SUCCESS.msg());
+
+            if (null != der.getId()) {
+                Order or = ll.get(0);
+                appResult.getBody().put("remainCount", or.getRemainCount());
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            appResult.getStatus().setCode(ResultCode.SYS_ERROR.val());
+            appResult.getStatus().setMessage("未找到订单");
+        }
+        return appResult;
+
+    }
+
+    @Override
+    @Transactional
+    public AppResult placeOrder(OrderVo orderVo) {
+        AppResult appResult = new AppResult();
+        Order order = new Order();
+        Goods goods = null;
+        if (null != orderVo.getItemType() && orderVo.getItemType() == 2) {//服务包
+            appResult = restTemplate.getForObject(pathConfiguration.getPatientUrl() + "/patient/info/" + orderVo.getPatientId(), AppResult.class);
+            if (!"200".equals(appResult.getStatus().getCode())) {
+                return appResult;
+            }
+            goods = goodsMapper.selectItemByPrimaryKey(orderVo.getGoodsId());
+            order.setItemId(orderVo.getGoodsId());
+        } else {
+            goods = goodsMapper.selectByPrimaryKey(orderVo.getGoodsId());
+            order.setRemainCount(goods.getCount() * orderVo.getGoodsNum());
+            order.setDictServiceCardId(orderVo.getGoodsId());
+        }
+        Map<String, Object> data = new HashMap<>();
+        order.setPatientIdPurchaser(orderVo.getPatientId());
+        order.setPatientIdOwner(orderVo.getPatientId());
+        order.setCreateTime(new Date());
+        order.setPrice(goods.getPrice().multiply(new BigDecimal(orderVo.getGoodsNum())));
+        order.setState((byte) 1);
+        order.setIsReceipt((byte) (orderVo.isReceipt() ? 2 : 1));
+        order.setOrderNo(OrderUtil.generateOrderNo());
+        order.setItemType(orderVo.getItemType()==null?(byte)1:orderVo.getItemType());
+        orderMapper.insert(order);
+        //保存服务卡明细
+        List<OrderDetail> orderDetails = new ArrayList<OrderDetail>();
+        //服务包创建任务
+        if (null != orderVo.getItemType() && orderVo.getItemType() == 2) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+            HttpEntity<String> httpEntity = new HttpEntity<String>(headers);
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("itemId", orderVo.getGoodsId());
+            map.put("orderId", Long.valueOf(order.getId()));
+            com.yhyt.health.spring.AppResult result
+                    =restTemplate.postForObject(pathConfiguration.getSystemUrl()+"/item/task/{itemId}?orderId={orderId}"
+                    , httpEntity, com.yhyt.health.spring.AppResult.class, map);
+            if (null == result || !"200".equals(result.getStatus().getCode())) {
+                throw new BusinessException("500", "创建客服任务失败");
+            }
+        }else{//服务卡
+            int count = order.getRemainCount();
+            for (int i = 0; i < count; i++) {
+                String orderCardNo = CARD_PREFIX + order.getOrderNo() + "-" + (i + 1);
+                OrderDetail orderDetail = new OrderDetail(orderCardNo, order.getPatientIdPurchaser(), order.getId());
+                orderDetail.setType((byte) 0);//未生效
+                orderDetailMapper.insert(orderDetail);
+                orderDetails.add(orderDetail);
+            }
+        }
+        appResult.setStatus(new ResultStatus(ResultCode.SUCCESS.val(), ResultCode.SUCCESS.msg()));
+        data.put("order", order);
+        data.put("orderDetails", orderDetails);
+        appResult.setBody(data);
+        return appResult;
+    }
+    
+    
+    @Override
+    @Transactional
+    public AppResult giveOrder(OrderVo orderVo) {
+        AppResult appResult = new AppResult();
+        Map<String, Object> data = new HashMap<>();
+        Goods goods = goodsMapper.selectByPrimaryKey(orderVo.getGoodsId());
+        Order order = new Order();
+        order.setPatientIdPurchaser(orderVo.getPatientId());
+        order.setPatientIdOwner(orderVo.getPatientId());
+        order.setCreateTime(orderVo.getCreateTime());
+        order.setDictServiceCardId(orderVo.getGoodsId());
+        order.setPrice(goods.getPrice().multiply(new BigDecimal(orderVo.getGoodsNum())));
+        order.setRemainCount(goods.getCount() * orderVo.getGoodsNum());
+        order.setState((byte) 1);
+        order.setIsReceipt((byte) (orderVo.isReceipt() ? 2 : 1));
+//		order.setPayType((byte) orderVo.getPayType());
+        order.setOrderNo(OrderUtil.generateOrderNo());
+  //      orderMapper.insert(order);
+        int count = order.getRemainCount();
+        List<OrderDetail> orderDetails = new ArrayList<>(1);
+        for (int i = 0; i < count; i++) {
+            String orderCardNo = CARD_PREFIX + order.getOrderNo() + "-" + (i + 1);
+            OrderDetail orderDetail = new OrderDetail(orderCardNo, order.getPatientIdPurchaser(), order.getId());
+            orderDetail.setType((byte) 1);//未生效
+            orderDetailMapper.insertForfree(orderDetail);
+            orderDetails.add(orderDetail);
+        }
+        appResult.setStatus(new ResultStatus(ResultCode.SUCCESS.val(), ResultCode.SUCCESS.msg()));
+   //     data.put("order", order);
+        data.put("orderDetails", orderDetails);
+        appResult.setBody(data);
+        return appResult;
+    }
+
+    @Override
+    @Transactional
+    public AppResult updateOrderState(Order order) {
+        AppResult result = new AppResult();
+//        order = orderMapper.selectByPrimaryKey(order.getId());
+//        order.setPayTime(new Date());
+//        order.setPayType((byte) 2);
+//        order.setState(state);//
+        int i = orderMapper.updateByPrimaryKey(order);
+        /*if (2==state) {
+            PayDetail payDetail = new PayDetail();
+            payDetail.setState(2);
+            payDetail.setOrderid(order.getOrderNo());
+            payDetail.setChannel("weixinpay");
+            payDetailMapper.updatePayDetail(payDetail);
+        }*/
+        if (i==1){
+            result.setStatus(new ResultStatus("SUCCESS","订单状态修改成功"));
+        }else {
+            result.setStatus(new ResultStatus("FAIL","订单状态修改失败"));
+        }
+        return result;
+    }
+
+    @Override
+    public AppResult addOrderDepartmentDetail(OrderDepartmentDetail orderDepartmentDetail) {
+        AppResult appResult = new AppResult();
+        orderDepartmentDetail.setCreateTime(new Date());
+        orderDepartmentDetailMapper.insertSelective(orderDepartmentDetail);
+        appResult.setStatus(new ResultStatus("200","插入科室收支明细成功"));
+        return appResult;
+    }
+
+    @Override
+    public Order getOrderById(Long id) {
+        return orderMapper.selectByPrimaryKey(id);
+    }
+
+    @Override
+    @Transactional
+    public AppResult cancelPay(Long orderId) {
+        AppResult appResult = new AppResult();
+        Order order = orderMapper.selectByPrimaryKey(orderId);
+        Map<String, Object> params = new HashMap<>();
+        params.put("channel","weixinpay");
+        params.put("orderId",order.getOrderNo());
+        payDetailMapper.deletePayDetail(params);
+        order.setState((byte)1);
+        order.setPayType(null);
+        orderMapper.updateByPrimaryKey(order);
+        return appResult;
+    }
+}

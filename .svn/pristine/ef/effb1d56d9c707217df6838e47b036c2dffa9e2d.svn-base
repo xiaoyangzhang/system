@@ -1,0 +1,17 @@
+package com.yhyt.health.dao;
+
+import com.yhyt.health.model.ItemLog;
+
+public interface ItemLogMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(ItemLog record);
+
+    int insertSelective(ItemLog record);
+
+    ItemLog selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(ItemLog record);
+
+    int updateByPrimaryKey(ItemLog record);
+}

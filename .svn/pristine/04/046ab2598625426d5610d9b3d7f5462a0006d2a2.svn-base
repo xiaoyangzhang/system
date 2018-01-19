@@ -1,0 +1,103 @@
+package com.yhyt.health.controller;
+
+import com.alibaba.fastjson.JSON;
+import com.yhyt.health.dao.OrderMapper;
+import com.yhyt.health.dao.PayDetailMapper;
+import com.yhyt.health.model.Order;
+import com.yhyt.health.model.PayDetail;
+import com.yhyt.health.service.PayService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+@Api(value="",description ="app支付接口")
+@RestController
+@RequestMapping("payment")
+public class PayController {
+
+	private Logger logger = LoggerFactory.getLogger(getClass());
+	@Autowired
+	private PayService payService;
+	
+	@Autowired
+	private PayDetailMapper payDetailMapper;
+	
+	@Autowired
+	private OrderMapper orderMapper;
+	
+	@ApiOperation(value="app退款接口,后续改成异步处理(否则有问题)", notes="支付")
+    @ApiImplicitParams({
+    	@ApiImplicitParam(name = "id", value = "订单主键id",paramType="path", required = true, dataType = "Long"),
+    	@ApiImplicitParam(name = "refundMsg", value = "退款原因",paramType="query", required = false, dataType = "Long"),
+    	@ApiImplicitParam(name = "client", value = "退款客户端",paramType="query", required = true, dataType = "String")
+    })
+	@PostMapping("/refund/{id}")
+	public void refund(@PathVariable("id")Long id,@RequestParam("refundMsg")String  refundMsg,@RequestParam("client")String client){
+		Order order = new Order();
+		order.setId(id);
+		order.setRefundMsg(refundMsg);
+		order.setRefundClient(Byte.parseByte(client));
+		logger.info("退款订单信息，order:{}", JSON.toJSONString(order));
+		try {
+			this.payService.refund(order);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("微信退款异常，error:{}",e);
+		}
+	}
+	
+	@ApiOperation(value="app退款详情", notes="支付")
+    @ApiImplicitParams({
+    	@ApiImplicitParam(name = "orderId", value = "订单主键id",paramType="path", required = true, dataType = "Long")
+    })
+	@GetMapping("/refundDetail/{orderId}")
+	public Map<String,Object> refundDetail(@PathVariable("orderId") Long id){
+		Map<String,Object> result = new HashMap<String,Object>();
+		Order order = this.orderMapper.selectByPrimaryKey(id);
+		LinkedHashMap<Integer, PayDetail> linkedMap = new LinkedHashMap<>();
+		LinkedList<PayDetail> payDetails = new LinkedList<>();
+		if(order!=null){
+			result.put("order", order);
+			if(order.getPayType()!=null){
+				Map<String,Object> params = new HashMap<String,Object>();
+				if(order.getPayType()==1){
+					params.put("channel", "alipay");
+				}else{
+					params.put("channel", "weixinpay");
+				}
+				params.put("orderId", order.getOrderNo().replaceAll("\\.", ""));
+				List<PayDetail> list = this.payDetailMapper.findRefundPayDetail(params);
+//				Collections.reverse(list);
+				
+				for (PayDetail payDetail : list) {
+						//app显示需要
+						if (4==payDetail.getState()){
+						payDetails.addLast(payDetail);
+						}
+						if (7==payDetail.getState()){
+						payDetails.addFirst(payDetail);
+						}
+						if(8==payDetail.getState()) {
+
+						payDetails.add(payDetail);
+						}
+//					linkedMap.put(payDetail.getState(), payDetail);
+				}
+			}
+			logger.info("支付详情，payDetails：{}",JSON.toJSONString(payDetails));
+			result.put("payDetail", payDetails);
+		}else{
+			result.put("order", new Order());
+			result.put("payDetail",payDetails );
+		}
+		return result;
+	}
+	
+}

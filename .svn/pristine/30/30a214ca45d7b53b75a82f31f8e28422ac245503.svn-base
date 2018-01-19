@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yhyt.health.dao.OrderMapper" >
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.Order" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="patient_id_purchaser" property="patientIdPurchaser" jdbcType="BIGINT" />
+    <result column="patient_id_owner" property="patientIdOwner" jdbcType="BIGINT" />
+    <result column="item_id" property="itemId" jdbcType="BIGINT" />
+    <result column="dict_service_card_id" property="dictServiceCardId" jdbcType="BIGINT" />
+    <result column="order_no" property="orderNo" jdbcType="VARCHAR" />
+    <result column="remain_count" property="remainCount" jdbcType="INTEGER" />
+    <result column="price" property="price" jdbcType="INTEGER" />
+    <result column="state" property="state" jdbcType="TINYINT" />
+    <result column="is_receipt" property="isReceipt" jdbcType="TINYINT" />
+    <result column="pay_type" property="payType" jdbcType="TINYINT" />
+    <result column="item_type" property="itemType" jdbcType="TINYINT" />
+    <result column="refund_client" property="refundClient" jdbcType="TINYINT" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="pay_time" property="payTime" jdbcType="TIMESTAMP" />
+    <result column="refund_msg" property="refundMsg" jdbcType="VARCHAR" />
+    <result column="version" property="version" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, patient_id_purchaser, patient_id_owner,item_id, dict_service_card_id, order_no, remain_count,
+    price, state, is_receipt, pay_type,item_type,refund_client, update_time, create_time, pay_time, refund_msg,version
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from `order`
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from `order`
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.Order" keyProperty="id">
+    insert into `order` (id, patient_id_purchaser, patient_id_owner, 
+      dict_service_card_id, order_no, remain_count, 
+      price, state, is_receipt, 
+      pay_type, update_time, create_time, 
+      pay_time, refund_msg,item_id,item_type)
+    values (#{id,jdbcType=BIGINT}, #{patientIdPurchaser,jdbcType=BIGINT}, #{patientIdOwner,jdbcType=BIGINT}, 
+      #{dictServiceCardId,jdbcType=BIGINT}, #{orderNo,jdbcType=VARCHAR}, #{remainCount,jdbcType=INTEGER}, 
+      #{price,jdbcType=INTEGER}, #{state,jdbcType=TINYINT}, #{isReceipt,jdbcType=TINYINT}, 
+      #{payType,jdbcType=TINYINT}, #{updateTime,jdbcType=TIMESTAMP}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{payTime,jdbcType=TIMESTAMP}, #{refundMsg,jdbcType=VARCHAR},#{itemId,jdbcType=BIGINT},#{itemType,jdbcType=TINYINT})
+  </insert>
+  
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.Order" >
+    insert into `order`
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="patientIdPurchaser != null" >
+        patient_id_purchaser,
+      </if>
+      <if test="patientIdOwner != null" >
+        patient_id_owner,
+      </if>
+      <if test="dictServiceCardId != null" >
+        dict_service_card_id,
+      </if>
+      <if test="orderNo != null" >
+        order_no,
+      </if>
+      <if test="remainCount != null" >
+        remain_count,
+      </if>
+      <if test="price != null" >
+        price,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="isReceipt != null" >
+        is_receipt,
+      </if>
+      <if test="payType != null" >
+        pay_type,
+      </if>
+      <if test="refundClient != null" >
+        refund_client,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="payTime != null" >
+        pay_time,
+      </if>
+      <if test="refundMsg != null" >
+        refund_msg,
+      </if>
+      <if test="itemId != null" >
+        item_id,
+      </if>
+      <if test="itemType != null" >
+        item_type,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="patientIdPurchaser != null" >
+        #{patientIdPurchaser,jdbcType=BIGINT},
+      </if>
+      <if test="patientIdOwner != null" >
+        #{patientIdOwner,jdbcType=BIGINT},
+      </if>
+      <if test="dictServiceCardId != null" >
+        #{dictServiceCardId,jdbcType=BIGINT},
+      </if>
+      <if test="orderNo != null" >
+        #{orderNo,jdbcType=VARCHAR},
+      </if>
+      <if test="remainCount != null" >
+        #{remainCount,jdbcType=INTEGER},
+      </if>
+      <if test="price != null" >
+        #{price,jdbcType=INTEGER},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=TINYINT},
+      </if>
+      <if test="isReceipt != null" >
+        #{isReceipt,jdbcType=TINYINT},
+      </if>
+      <if test="payType != null" >
+        #{payType,jdbcType=TINYINT},
+      </if>
+    <if test="refundClient != null" >
+        #{refundClient,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="payTime != null" >
+        #{payTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="refundMsg != null" >
+        #{refundMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="itemId != null" >
+        #{itemId,jdbcType=BIGINT},
+      </if>
+      <if test="itemType != null" >
+        #{itemType,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.Order" >
+    update `order`
+    <set >
+      <if test="patientIdPurchaser != null" >
+        patient_id_purchaser = #{patientIdPurchaser,jdbcType=BIGINT},
+      </if>
+      <if test="patientIdOwner != null" >
+        patient_id_owner = #{patientIdOwner,jdbcType=BIGINT},
+      </if>
+      <if test="itemId != null" >
+        item_id = #{itemId,jdbcType=BIGINT},
+      </if>
+      <if test="dictServiceCardId != null" >
+        dict_service_card_id = #{dictServiceCardId,jdbcType=BIGINT},
+      </if>
+      <if test="orderNo != null" >
+        order_no = #{orderNo,jdbcType=VARCHAR},
+      </if>
+      <if test="remainCount != null" >
+        remain_count = #{remainCount,jdbcType=INTEGER},
+      </if>
+      <if test="price != null" >
+        price = #{price,jdbcType=INTEGER},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=TINYINT},
+      </if>
+      <if test="isReceipt != null" >
+        is_receipt = #{isReceipt,jdbcType=TINYINT},
+      </if>
+      <if test="payType != null" >
+        pay_type = #{payType,jdbcType=TINYINT},
+      </if>
+     <if test="itemType != null" >
+        item_type = #{itemType,jdbcType=TINYINT},
+      </if>
+     <if test="refundClient != null" >
+       refund_client = #{refundClient,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="payTime != null" >
+        pay_time = #{payTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="refundMsg != null" >
+        refund_msg = #{refundMsg,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+   <update id="updateDetailByPrimaryKeySelective" parameterType="com.yhyt.health.model.OrderDetail" >
+    update order_detail set t.type=1
+   
+    where oder_id = #{oderId}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.Order" >
+    update `order`
+    set patient_id_purchaser = #{patientIdPurchaser,jdbcType=BIGINT},
+      patient_id_owner = #{patientIdOwner,jdbcType=BIGINT},
+      version = #{version,jdbcType=BIGINT},
+      item_id = #{itemId,jdbcType=BIGINT},
+      dict_service_card_id = #{dictServiceCardId,jdbcType=BIGINT},
+      order_no = #{orderNo,jdbcType=VARCHAR},
+      remain_count = #{remainCount,jdbcType=INTEGER},
+      price = #{price,jdbcType=INTEGER},
+      state = #{state,jdbcType=TINYINT},
+      is_receipt = #{isReceipt,jdbcType=TINYINT},
+      pay_type = #{payType,jdbcType=TINYINT},
+      item_type = #{itemType,jdbcType=TINYINT},
+      refund_client = #{refundClient,jdbcType=TINYINT},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      pay_time = #{payTime,jdbcType=TIMESTAMP},
+      refund_msg = #{refundMsg,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+       <select id="getOrder" parameterType="map" resultMap="BaseResultMap">
+    select * from `order` 
+    where 1=1 
+    <if test="orderId != null">
+       and id= #{orderId}
+    </if>
+     <if test="orderNo != null">
+       and order_no= #{orderNo}
+    </if>
+     <if test="states != null">
+       AND state IN
+       <foreach collection="states " item="state" index="index"
+                open="(" close=")" separator=",">
+         #{state}
+       </foreach>
+     </if>
+      <if test="patientId != null">
+        AND patient_id_owner = #{patientId}
+      </if>
+      order by pay_time desc
+       </select>
+       
+   <update id="updateAndCheck" >
+    update `order` 
+    <set >
+      <if test="param1.state != null" >
+        state = #{0.state,jdbcType=TINYINT},
+      </if>
+      <if test="param1.remainCount != null" >
+        remain_count = #{0.remainCount,jdbcType=TINYINT},
+      </if>
+      <if test="param1.payType != null" >
+        pay_type = #{0.payType,jdbcType=TINYINT},
+      </if>
+    <if test="param1.refundClient != null" >
+      refund_client = #{0.refundClient,jdbcType=TINYINT},
+      </if>
+      <if test="param1.refundMsg != null" >
+        refund_msg = #{0.refundMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="param1.updateTime != null" >
+        update_time = #{0.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <trim prefix="WHERE" prefixOverrides="AND|OR">
+      	<if test="param2.id!=null">and id = #{1.id,jdbcType=BIGINT}</if>
+    	<if test="param2.state!=null">and state = #{1.state,jdbcType=TINYINT}</if>
+    </trim>
+  </update>
+       <update id="updateByOrderNo"  >
+         update `order` set pay_type=#{payType},state=8 where order_no=#{orderNo}
+       </update>
+  <update id="updateOrderStateByOrderNo" parameterType="com.yhyt.health.model.Order">
+    update `order` set state = #{state,jdbcType=TINYINT},
+      pay_type = #{payType,jdbcType=TINYINT},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      pay_time = #{payTime,jdbcType=TIMESTAMP}
+      where order_no=#{orderNo}
+  </update>
+  <select id="selectByOrderNo" parameterType="String" resultType="com.yhyt.health.model.OrderVo">
+    select o.patient_id_owner patientId, item.name `itemName` ,dep.name department,h.name hospital from `order` o join `item` on o.item_id=item.id
+    join item_department idep on item.id=idep.item_id
+    join department dep on idep.department_id=dep.id
+    join hospital h on h.id=idep.hospital_id
+    WHERE order_no=#{orderNo}
+  </select>
+</mapper>

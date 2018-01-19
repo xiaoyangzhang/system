@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yhyt.health.dao.GoodsMapper" >
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.Goods" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="price" property="price" jdbcType="INTEGER" />
+    <result column="count" property="count" jdbcType="INTEGER" />
+    <result column="income_rate" property="incomeRate" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, price, count, income_rate, create_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from dict_service_card
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectItemByPrimaryKey" parameterType="Long" resultMap="BaseResultMap">
+    SELECT i.id, i.`name`, i.price, i.count, '0',create_time
+    FROM item i WHERE i.id = #{id,jdbcType=BIGINT}
+  </select>
+</mapper>

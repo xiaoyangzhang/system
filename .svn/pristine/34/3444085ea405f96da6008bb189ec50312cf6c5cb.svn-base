@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.SysUpgradeMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.SysUpgrade">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="client_type" jdbcType="TINYINT" property="clientType" />
+    <result column="app_version" jdbcType="DECIMAL" property="appVersion" />
+    <result column="is_force" jdbcType="TINYINT" property="isForce" />
+    <result column="download_url" jdbcType="VARCHAR" property="downloadUrl" />
+    <result column="operator" jdbcType="VARCHAR" property="operator" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="app_type" jdbcType="VARCHAR" property="appType" />
+    <result column="version_name" jdbcType="VARCHAR" property="versionName" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, content, client_type, app_version, is_force, download_url, operator, create_time, 
+    update_time, app_type,version_name
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from sys_upgrade
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from sys_upgrade
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.SysUpgrade">
+    insert into sys_upgrade (id, content, client_type, 
+      app_version, is_force, download_url, 
+      operator, create_time, update_time, 
+      app_type)
+    values (#{id,jdbcType=BIGINT}, #{content,jdbcType=VARCHAR}, #{clientType,jdbcType=TINYINT}, 
+      #{appVersion,jdbcType=DECIMAL}, #{isForce,jdbcType=TINYINT}, #{downloadUrl,jdbcType=VARCHAR}, 
+      #{operator,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{appType,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.SysUpgrade">
+    insert into sys_upgrade
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="clientType != null">
+        client_type,
+      </if>
+      <if test="appVersion != null">
+        app_version,
+      </if>
+      <if test="isForce != null">
+        is_force,
+      </if>
+      <if test="downloadUrl != null">
+        download_url,
+      </if>
+      <if test="operator != null">
+        operator,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="appType != null">
+        app_type,
+      </if>
+      <if test="versionName != null">
+        version_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="clientType != null">
+        #{clientType,jdbcType=TINYINT},
+      </if>
+      <if test="appVersion != null">
+        #{appVersion,jdbcType=DECIMAL},
+      </if>
+      <if test="isForce != null">
+        #{isForce,jdbcType=TINYINT},
+      </if>
+      <if test="downloadUrl != null">
+        #{downloadUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="operator != null">
+        #{operator,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="appType != null">
+        #{appType,jdbcType=VARCHAR},
+      </if>
+      <if test="versionName != null">
+        #{versionName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.SysUpgrade">
+    update sys_upgrade
+    <set>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="clientType != null">
+        client_type = #{clientType,jdbcType=TINYINT},
+      </if>
+      <if test="appVersion != null">
+        app_version = #{appVersion,jdbcType=DECIMAL},
+      </if>
+      <if test="isForce != null">
+        is_force = #{isForce,jdbcType=TINYINT},
+      </if>
+      <if test="downloadUrl != null">
+        download_url = #{downloadUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="operator != null">
+        operator = #{operator,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="appType != null">
+        app_type = #{appType,jdbcType=VARCHAR},
+      </if>
+      <if test="versionName != null">
+        version_name = #{versionName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.SysUpgrade">
+    update sys_upgrade
+    set content = #{content,jdbcType=VARCHAR},
+      client_type = #{clientType,jdbcType=TINYINT},
+      app_version = #{appVersion,jdbcType=DECIMAL},
+      is_force = #{isForce,jdbcType=TINYINT},
+      download_url = #{downloadUrl,jdbcType=VARCHAR},
+      operator = #{operator,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      app_type = #{appType,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="findPersistableList" parameterType="java.util.Map" resultMap="BaseResultMap">
+  	select <include refid="Base_Column_List" /> from sys_upgrade t
+  	<include refid="search_feedback"></include> 
+  	order by t.update_time desc
+  </select>
+
+    <!-- 账户列表搜索条件  -->
+  <sql id="search_feedback">
+    <trim prefix="WHERE" prefixOverrides="AND|OR">
+    	<if test="clientType!=null">and t.client_type = #{clientType,jdbcType=TINYINT}</if>
+    	<if test="appType!=null">and t.app_type = #{appType,jdbcType=VARCHAR}</if>
+    	<if test="appVersion!=null">and t.app_version = #{appVersion,jdbcType=VARCHAR}</if>
+    	<if test="upgradeStartTime!=null">and update_time <![CDATA[>=]]> #{upgradeStartTime}</if>
+    	<if test="upgradeEndTime!=null">and update_time <![CDATA[<=]]> #{upgradeEndTime}</if>
+    </trim>
+  </sql>
+  <select id="selectUpGradeListPage" parameterType="com.yhyt.health.model.UpgradeQuery" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from sys_upgrade WHERE 1=1
+    <if test="appType!=null">
+      and app_type=#{appType}
+    </if>
+    <if test="clientType!=null">
+      and       client_type = #{clientType,jdbcType=TINYINT}
+
+    </if>
+
+    <if test="upgradeStartTime != null">
+      and update_time <![CDATA[>=]]> #{upgradeStartTime}
+    </if>
+    <if test="upgradeEndTime != null">
+      and update_time <![CDATA[<=]]> #{upgradeEndTime}
+
+    </if>
+    order by update_time desc
+  </select>
+</mapper>

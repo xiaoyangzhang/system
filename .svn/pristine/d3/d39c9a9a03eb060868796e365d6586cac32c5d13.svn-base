@@ -1,0 +1,301 @@
+package com.yhyt.health.service.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.yhyt.health.dao.QuestionnaireDeptMapper;
+import com.yhyt.health.dao.QuestionnaireDiseaseMapper;
+import com.yhyt.health.dao.QuestionnaireItemMapper;
+import com.yhyt.health.dao.QuestionnaireMapper;
+import com.yhyt.health.model.*;
+import com.yhyt.health.model.dto.QuestionnaireDTO;
+import com.yhyt.health.model.dto.QuestionnaireDeptDTO;
+import com.yhyt.health.model.dto.QuestionnaireDiseaseDTO;
+import com.yhyt.health.service.DictDepartmentService;
+import com.yhyt.health.service.QuestionnaireService;
+import com.yhyt.health.util.BusinessException;
+import com.yhyt.health.util.Page;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+
+@Service
+public class QuestionnaireServiceImpl implements QuestionnaireService {
+
+    private static Logger logger = LoggerFactory.getLogger(QuestionnaireServiceImpl.class);
+    @Autowired
+    private QuestionnaireMapper questionnaireMapper;
+    @Autowired
+    private QuestionnaireDeptMapper questionnaireDeptMapper;
+    @Autowired
+    private QuestionnaireDiseaseMapper questionnaireDiseaseMapper;
+//    @Autowired
+//    private QuestionnairePictureMapper questionnairePictureMapper;
+    @Autowired
+    private QuestionnaireItemMapper questionnaireItemMapper;
+    @Autowired
+    private DictDepartmentService dictDepartmentService;
+    @Override
+    @Transactional
+    public long addQuestionnaire(QuestionnaireDTO questionnaireDTO) {
+        Questionnaire questionnaire = questionnaireDTO.getQuestionnaire();
+        if (questionnaire.getId()!=null && questionnaire.getId()>0){
+            Questionnaire questionnaire2 = new Questionnaire();
+            questionnaire2.setState((byte)4);
+            questionnaire2.setId(questionnaire.getId());
+            questionnaireMapper.updateByPrimaryKeySelective(questionnaire2);
+        }
+        logger.info("问卷入参，params:{}", JSON.toJSONString(questionnaire));
+        questionnaire.setId(null);
+        questionnaire.setUpdateTime(new Date());
+        questionnaireMapper.insertSelective(questionnaire);
+        logger.info("问卷出参，params:{}", JSON.toJSONString(questionnaire));
+
+        List<QuestionnaireItem> questionnaireItems = questionnaireDTO.getQuestionnaireItems();
+        if (!CollectionUtils.isEmpty(questionnaireItems)) {
+            for (QuestionnaireItem qi : questionnaireItems) {
+                qi.setQuestionnaireId(questionnaire.getId());
+                qi.setUpdateTime(new Date());
+                questionnaireItemMapper.insertSelective(qi);
+            }
+        }
+        //-1表示通用
+        List<QuestionnaireDept> questionnaireDepts = questionnaireDTO.getQuestionnaireDepts();
+        if (!CollectionUtils.isEmpty(questionnaireDepts)){
+            for (QuestionnaireDept qd:questionnaireDepts){
+                qd.setQuestionnaireId(questionnaire.getId());
+                qd.setCreateTime(new Date());
+                questionnaireDeptMapper.insertSelective(qd);
+            }
+        }
+        //-1表示通用
+        List<QuestionnaireDisease> questionnaireDiseases = questionnaireDTO.getQuestionnaireDiseases();
+        if (!CollectionUtils.isEmpty(questionnaireDiseases)){
+            for (QuestionnaireDisease qd:questionnaireDiseases){
+                qd.setCreateTime(new Date());
+                qd.setQuestionnaireId(questionnaire.getId());
+                questionnaireDiseaseMapper.insertSelective(qd);
+            }
+        }
+        return questionnaire.getId();
+    }
+
+
+    @Override
+    public int updateState(Long id, Byte state) /*throws BusinessException*/ {
+        Questionnaire record = new Questionnaire();
+        record.setId(id);
+        record.setState(state);
+        if (2==state){
+            List<QuestionnaireItem> questionnaireItems = questionnaireItemMapper.selectByQuestionnaireId(id);
+            if (!CollectionUtils.isEmpty(questionnaireItems)){
+                for (QuestionnaireItem qi:questionnaireItems){
+                    int count=0;
+                    if (1== qi.getType() || 2==qi.getType()){
+                        if (StringUtils.isEmpty(qi.getAnswerA()) || StringUtils.isEmpty(qi.getAnswerB())  )
+                            throw new BusinessException("501","选择题选项内容不能为空");
+//                        if (qi.getAnswerA().length()>100 || qi.getAnswerB().length()>100 ||qi.getAnswerB().length()>100 ||qi.getAnswerC().length()>100 ||
+//                                qi.getAnswerD().length()>100 ||qi.getAnswerE().length()>100 || qi.getAnswerF().length()>100)
+//                            throw new BusinessException("501","选项内容最多100个字符");
+                        if (StringUtils.isNotEmpty(qi.getAnswerA())){
+                            if (qi.getAnswerA().length()>100){
+                                throw new BusinessException("501","选项内容最多100个字符");
+                            }
+                            count++;
+                        }
+                        if (StringUtils.isNotEmpty(qi.getAnswerB())) {
+                            if (qi.getAnswerB().length()>100){
+                                throw new BusinessException("501","选项内容最多100个字符");
+                            }
+                            count++;
+                        }
+                        if (StringUtils.isNotEmpty(qi.getAnswerC())){
+                            if (qi.getAnswerC().length()>100){
+                                throw new BusinessException("501","选项内容最多100个字符");
+                            }
+                            count++;
+                        }
+                        if (StringUtils.isNotEmpty(qi.getAnswerD())) {
+                            if (qi.getAnswerD().length()>100){
+                                throw new BusinessException("501","选项内容最多100个字符");
+                            }
+                            count++;
+                        }
+                        if (StringUtils.isNotEmpty(qi.getAnswerE())){
+                            if (qi.getAnswerE().length()>100){
+                                throw new BusinessException("501","选项内容最多100个字符");
+                            }
+                            count++;
+                        }
+                        if (StringUtils.isNotEmpty(qi.getAnswerF())){
+                            if (qi.getAnswerF().length()>100){
+                                throw new BusinessException("501","选项内容最多100个字符");
+                            }
+                            count++;
+                        }
+                        if (count<2){
+                            throw new BusinessException("501","选择题至少添加两个选项");
+                        }
+                    }
+                    if (StringUtils.isEmpty(qi.getTitle())) throw new BusinessException("501","请完善题干内容");
+                    if (qi.getTitle().length()>100) throw new BusinessException("501","题干内容最多输入100个字符");
+                    if (4==qi.getType() && (StringUtils.isEmpty(qi.getMaxDescription() )|| StringUtils.isEmpty(qi.getMinDescription())))
+                        throw new BusinessException("501","请完善滑块题目内容");
+                   if (4==qi.getType() && (qi.getMaxDescription().length()>20|| qi.getMinDescription().length()>20))
+                        throw new BusinessException("501","滑块题目描述最多20个字符");
+                }
+            }else {
+                throw new BusinessException("501","请完善题目");
+            }
+            List<QuestionnaireDeptDTO> questionnaireDeptDTOS = questionnaireDeptMapper.selectByQuestionnaireId(id);
+            if (CollectionUtils.isEmpty(questionnaireDeptDTOS)){
+                throw new BusinessException("501","问卷科室标签不能为空");
+            }
+        }
+        return questionnaireMapper.updateByPrimaryKeySelective(record);
+    }
+
+    @Override
+    public QuestionnaireDTO selectById(Long id) {
+        QuestionnaireDTO questionnaireDTO = new QuestionnaireDTO();
+        Questionnaire questionnaire = questionnaireMapper.selectByPrimaryKey(id);
+        if (questionnaire !=null){
+            questionnaireDTO.setQuestionnaire(questionnaire);
+            List<QuestionnaireItem> questionnaireItems = questionnaireItemMapper.selectByQuestionnaireId(questionnaire.getId());
+            questionnaireDTO.setQuestionnaireItems(questionnaireItems);
+                List<QuestionnaireDeptDTO> questionnaireDeptDTOS = questionnaireDeptMapper.selectByQuestionnaireId(questionnaire.getId());
+                questionnaireDTO.setQuestionnaireDeptDTOS(questionnaireDeptDTOS);
+                List<QuestionnaireDiseaseDTO> questionnaireDiseaseDTOS = questionnaireDiseaseMapper.selectByQuestionnaireId(questionnaire.getId());
+                questionnaireDTO.setQuestionnaireDiseaseDTOs(questionnaireDiseaseDTOS);
+
+        }
+        return questionnaireDTO;
+    }
+
+    @Override
+    public List<QuestionnaireDept> selectQuestionnaireDeptById(Long id) {
+        return questionnaireDeptMapper.selectQuestionnaireDeptById(id);
+    }
+
+    @Override
+    public List<QuestionnaireDisease> selectQuestionnaireDiseaseById(Long id) {
+        return questionnaireDiseaseMapper.selectQuestionnaireDiseaseById(id);
+    }
+
+    @Override
+    public Page<QuestionnaireDTO> selectQuestionnaireListPage(QuestionnaireQuery query) {
+        Map<String,Object> params = new HashMap<String,Object>();
+        if ("-1".equals(query.getLevelOnedictDeptId())){//草稿箱
+            params.put("type",-1);
+        }
+        if (StringUtils.isNotEmpty(query.getTitle())){
+            params.put("title", query.getTitle());
+        }
+        /*if ("0".equals(query.getLevelOnedictDeptId()) || null!=query.getLevelTwodictDeptId() ){//通用
+                params.put("dictDeptId",query.getLevelTwodictDeptId());
+
+        }*/
+        Page<QuestionnaireDTO> page = new Page<QuestionnaireDTO>();
+        if(query.getPageIndex()==null || query.getPageIndex()==0){
+            query.setPageIndex(1);
+        }
+        page.setPageNo(query.getPageIndex());
+        if(query.getPageSize() != null && query.getPageSize() != 0){
+            page.setPageSize(query.getPageSize());
+        }
+        //二级科室
+        if (query.getLevelTwodictDeptId() != null) {
+            List<QuestionnaireDept> questionnaireDepts = questionnaireDeptMapper.selectQuestionnaireDeptByDeptId(query.getLevelTwodictDeptId());
+            if (!CollectionUtils.isEmpty(questionnaireDepts)){
+
+                StringBuilder sb = new StringBuilder();
+                for (QuestionnaireDept qd:questionnaireDepts){
+                    sb.append(qd.getQuestionnaireId()+",");
+                }
+                params.clear();
+                params.put("ids", sb.substring(0,sb.length()-1));
+            }else {
+                page.setResult(Collections.emptyList());
+                page.setTotalRecord(0);
+                return  page;
+            }
+        }
+        //通用科室
+        if ("0".equals(query. getLevelOnedictDeptId())) {
+            List<QuestionnaireDept> questionnaireDepts = questionnaireDeptMapper.selectQuestionnaireDeptByDeptId(Long.parseLong("0"));
+            if (!CollectionUtils.isEmpty(questionnaireDepts)){
+
+                StringBuilder sb = new StringBuilder();
+                for (QuestionnaireDept qd:questionnaireDepts){
+                    sb.append(qd.getQuestionnaireId()+",");
+                }
+                params.clear();
+                params.put("ids", sb.substring(0,sb.length()-1));
+            }else {
+                page.setResult(Collections.emptyList());
+                page.setTotalRecord(0);
+                return  page;
+            }
+        }
+        params.put("page", page);
+        List<QuestionnaireDTO> questionnaireDTOS = questionnaireMapper.selectQuestionnaireListPage(params);
+        //一级科室不是全部科室，通用科室，草稿箱
+        if (StringUtils.isNotEmpty(query.getLevelOnedictDeptId()) && !"-1".equals(query.getLevelOnedictDeptId()) &&
+                !"0".equals(query.getLevelOnedictDeptId()) && !"-2".equals(query.getLevelOnedictDeptId()) && query.getLevelTwodictDeptId()==null ){
+            params.put("parentCode",query.getLevelOnedictDeptId());
+            List<DictDepartment> dictDepartmentList = dictDepartmentService.findDictDepartmentList(params);
+            if (!CollectionUtils.isEmpty(dictDepartmentList) && !CollectionUtils.isEmpty(questionnaireDTOS)){
+
+                ArrayList<QuestionnaireDTO> questionnaireDTOList = new ArrayList<>();
+                for (DictDepartment dd: dictDepartmentList){
+                    for (QuestionnaireDTO dto:questionnaireDTOS){
+                        if (StringUtils.isNotEmpty(dto.getDeptName()) && dto.getDeptName().contains(dd.getChildName())){
+                            questionnaireDTOList.add(dto);
+                        }
+                    }
+                }
+            page.setResult(questionnaireDTOList);
+            page.setTotalRecord(questionnaireDTOList.size());
+            }
+        }
+        else {
+            page.setResult(questionnaireMapper.selectQuestionnaireListPage(params));
+        }
+        return page;
+    }
+
+    @Override
+    public int deleteQuestionnaireDept(Long id) {
+        return questionnaireDeptMapper.deleteByPrimaryKey(id);
+    }
+
+    @Override
+    public int deleteQuestionnaireDisease(Long id) {
+        return questionnaireDiseaseMapper.deleteByPrimaryKey(id);
+    }
+
+    @Override
+    @Transactional
+    public int addQuestionnaireDeptBatch(List<QuestionnaireDept> questionnaireDepts) {
+        if (!CollectionUtils.isEmpty(questionnaireDepts)){
+            for (QuestionnaireDept qd:questionnaireDepts){
+                qd.setCreateTime(new Date());
+            }
+        }
+        return questionnaireDeptMapper.insertBatch(questionnaireDepts);
+    }
+
+    @Override
+    @Transactional
+    public int addQuestionnaireDiseaseBatch(List<QuestionnaireDisease> questionnaireDiseases) {
+        if (!CollectionUtils.isEmpty(questionnaireDiseases)){
+            for (QuestionnaireDisease qd:questionnaireDiseases){
+                qd.setCreateTime(new Date());
+            }
+        }
+        return questionnaireDiseaseMapper.insertBatch(questionnaireDiseases);    }
+}

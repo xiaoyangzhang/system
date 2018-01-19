@@ -1,0 +1,239 @@
+package com.yhyt.health.service.impl;
+
+import com.yhyt.health.dao.ItemDepartmentMapper;
+import com.yhyt.health.dao.ItemDiseaseMapper;
+import com.yhyt.health.dao.ItemMapper;
+import com.yhyt.health.model.Item;
+import com.yhyt.health.model.ItemDepartment;
+import com.yhyt.health.model.ItemDisease;
+import com.yhyt.health.model.dto.ItemBody;
+import com.yhyt.health.model.dto.ItemBodyReturnVo;
+import com.yhyt.health.model.dto.ItemQueryDTO;
+import com.yhyt.health.model.dto.ItemResultDTO;
+import com.yhyt.health.service.ItemService;
+import com.yhyt.health.spring.AppResult;
+import com.yhyt.health.util.Page;
+import org.joda.time.DateTime;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * 商品serviceImpl
+ */
+@Service
+public class ItemServiceImpl implements ItemService {
+
+    @Resource
+    private ItemMapper itemMapper;
+
+    @Resource
+    private ItemDepartmentMapper itemDepartmentMapper;
+
+    @Resource
+    private ItemDiseaseMapper itemDiseaseMapper;
+
+    @Override
+    public int deleteByPrimaryKey(Long id) {
+        return itemMapper.deleteByPrimaryKey(id);
+    }
+
+    @Override
+    public int insert(Item record) {
+        return itemMapper.insert(record);
+    }
+
+    @Override
+    public int insertSelective(Item record) {
+        return itemMapper.insertSelective(record);
+    }
+
+    @Override
+    public Item selectByPrimaryKey(Long id) {
+        return itemMapper.selectByPrimaryKey(id);
+    }
+
+    @Override
+    public int updateByPrimaryKeySelective(Item record) {
+        return itemMapper.updateByPrimaryKeySelective(record);
+    }
+
+    @Override
+    public int updateByPrimaryKeyWithBLOBs(Item record) {
+        return itemMapper.updateByPrimaryKeyWithBLOBs(record);
+    }
+
+    @Override
+    public int updateByPrimaryKey(Item record) { return itemMapper.updateByPrimaryKey(record);
+    }
+
+    /**
+     * 分页查询商品列表
+     * @param itemQueryDTO
+     * @return
+     */
+
+    @Override
+    public Page<ItemResultDTO> getItemResultDTOPage(ItemQueryDTO itemQueryDTO) {
+
+        Page<ItemResultDTO> page = new Page<ItemResultDTO>();
+        if(itemQueryDTO.getPageIndex()==null || itemQueryDTO.getPageIndex()==0){
+            itemQueryDTO.setPageIndex(1);
+        }
+        page.setPageNo(itemQueryDTO.getPageIndex());
+        if(itemQueryDTO.getPageSize() != null && itemQueryDTO.getPageSize() != 0){
+            page.setPageSize(itemQueryDTO.getPageSize());
+        }
+        List<ItemResultDTO> list = new ArrayList<>();
+        list = this.itemMapper.getItemResultDTOPage(itemQueryDTO);
+
+        if(null!=list){
+            page.setResult(list);
+        }else {
+            page.setResult(Collections.emptyList());
+            page.setTotalRecord(0);
+        }
+        return  page;
+    }
+
+    @Override
+    public List<ItemResultDTO> getItemDTOsBelongDept(Long deptId) {
+        return itemDepartmentMapper.selectItemsBelongDepts(deptId);
+    }
+
+
+    /**
+     * 生成商品id＋code
+     *  废弃方法
+     * @return
+     */
+    @Override
+    public String createItemCode() {
+
+        //商品类型是服务包的
+        String codePrefi = "01";
+
+        return codePrefi;
+    }
+
+    /**
+     * 保存／修改商品信息
+     * @param itemBody
+     * @return
+     */
+    @Override
+    @Transactional
+    public AppResult insertOrUpdateItemAndDisease(ItemBody itemBody) {
+        AppResult appResult = new AppResult();
+        synchronized (this) {
+            try {
+                //第一步 参数的非空判断直接在对象内部进行判断
+                //第二步 判断id是否为空 为空就新增  不为空就修改
+                if (null == itemBody.getId()) {
+                    //进入新增流程
+                    //保存商品信息
+                    itemBody.setCreateTime(DateTime.now().toDate());
+                    Long itemId = this.itemMapper.insertitemBody(itemBody);
+
+                    //保存商品关联医院科室表
+                    ItemDepartment itemDepartment = new ItemDepartment();
+                    itemDepartment.setItemId(itemId);
+                    itemDepartment.setHospitalId(itemBody.getHospitalId());
+                    itemDepartment.setDepartmentId(itemBody.getDepartmentId());
+                    itemDepartment.setCreateTime(DateTime.now().toDate());
+                    itemDepartmentMapper.insertSelective(itemDepartment);
+
+                    //保存商品关联疾病表
+                    List<Long> itemDiseases = new ArrayList<>();
+                    itemDiseases = itemBody.getDictDiseaseIds();
+                    for (Long vo : itemDiseases) {
+                        ItemDisease itemDisease = new ItemDisease();
+
+                        itemDisease.setDictDiseaseId(vo);
+                        itemDisease.setItemId(itemId);
+                        itemDisease.setCtreateTime(DateTime.now().toDate());
+                        itemDiseaseMapper.insertSelective(itemDisease);
+                    }
+
+                } else {
+                    //进入修改流程
+                    //更新商品信息
+                    itemBody.setCreateTime(DateTime.now().toDate());
+                    this.itemMapper.updateitemBodyByPrimaryKeySelective(itemBody);
+
+                    //更新商品关联医院科室表
+                    ItemDepartment itemDepartment = this.itemDepartmentMapper.selectByAppointField("item_id", itemBody.getId());
+                    itemDepartment.setHospitalId(itemBody.getHospitalId());
+                    itemDepartment.setDepartmentId(itemBody.getDepartmentId());
+                    itemDepartmentMapper.updateByPrimaryKeySelective(itemDepartment);
+
+                    //商品关联疾病表
+
+                    itemDiseaseMapper.deleteByAppointField("item_id", itemBody.getId());
+
+                    List<Long> itemDiseases = new ArrayList<>();
+                    itemDiseases = itemBody.getDictDiseaseIds();
+                    for (Long vo : itemDiseases) {
+                        ItemDisease itemDisease = new ItemDisease();
+
+                        itemDisease.setDictDiseaseId(vo);
+                        itemDisease.setItemId(itemBody.getId());
+                        itemDisease.setCtreateTime(DateTime.now().toDate());
+                        itemDiseaseMapper.insertSelective(itemDisease);
+                    }
+                }
+                appResult.setCode("200");
+                appResult.setMessage("成功");
+            } catch (Exception e) {
+                e.printStackTrace();
+                appResult.setCode("400");
+                appResult.setMessage("失败");
+            }
+        }
+        return appResult;
+    }
+
+    /**
+     * 商品的详细信息查询接口
+     * @return
+     */
+    @Override
+    public ItemBodyReturnVo getItemMessage(final Long itemId) {
+
+        ItemBodyReturnVo itemBodyReturnVo = itemMapper.getItemMessage(itemId);
+        //获取
+        itemBodyReturnVo.setDictDiseaseIds(itemDiseaseMapper.getdDiseaseIdByItemId(itemId));
+
+        return itemBodyReturnVo;
+    }
+
+    @Override
+    public AppResult offshelfItem(Long itemId, Byte state) {
+        AppResult appResult = new AppResult();
+        try {
+            itemMapper.offshelfItem(itemId, state);
+            appResult.setCode("200");
+            appResult.setMessage("成功");
+        }catch (Exception e){
+            e.printStackTrace();
+            appResult.setCode("400");
+            appResult.setMessage("失败");
+        }
+        return  appResult;
+    }
+
+    @Override
+    @Transactional
+    public int updateItemState(Item item) {
+        if (item!=null){
+            itemMapper.updateByPrimaryKeySelective(item);
+        }
+
+        return 0;
+    }
+
+}

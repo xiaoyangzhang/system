@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.SysServiceTaskMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.SysServiceTask">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="order_id" jdbcType="BIGINT" property="orderId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="type" jdbcType="TINYINT" property="type" />
+    <result column="doctor_state" jdbcType="TINYINT" property="doctorState" />
+    <result column="task_state" jdbcType="TINYINT" property="taskState" />
+    <result column="service_doctor_id" jdbcType="BIGINT" property="serviceDoctorId" />
+    <result column="review_time" jdbcType="TIMESTAMP" property="reviewTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="operator" jdbcType="VARCHAR" property="operator" />
+    <result column="version" jdbcType="BIGINT" property="version"/>
+    <result column="doctor_start_time" jdbcType="TIMESTAMP" property="doctorStartTime"/>
+    <result column="doctor_end_time" jdbcType="TIMESTAMP" property="doctorEndTime"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, order_id, name, type, doctor_state, task_state, service_doctor_id, review_time, 
+    update_time, create_time, version, doctor_start_time, doctor_end_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from sys_service_task
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from sys_service_task
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.SysServiceTask">
+    insert into sys_service_task (id, order_id, name, 
+      type, doctor_state, task_state, 
+      service_doctor_id, review_time, update_time, 
+      create_time)
+    values (#{id,jdbcType=BIGINT}, #{orderId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, 
+      #{type,jdbcType=TINYINT}, #{doctorState,jdbcType=TINYINT}, #{taskState,jdbcType=TINYINT}, 
+      #{serviceDoctorId,jdbcType=BIGINT}, #{reviewTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.SysServiceTask">
+    insert into sys_service_task
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="orderId != null">
+        order_id,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="doctorState != null">
+        doctor_state,
+      </if>
+      <if test="taskState != null">
+        task_state,
+      </if>
+      <if test="serviceDoctorId != null">
+        service_doctor_id,
+      </if>
+      <if test="reviewTime != null">
+        review_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="orderId != null">
+        #{orderId,jdbcType=BIGINT},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=TINYINT},
+      </if>
+      <if test="doctorState != null">
+        #{doctorState,jdbcType=TINYINT},
+      </if>
+      <if test="taskState != null">
+        #{taskState,jdbcType=TINYINT},
+      </if>
+      <if test="serviceDoctorId != null">
+        #{serviceDoctorId,jdbcType=BIGINT},
+      </if>
+      <if test="reviewTime != null">
+        #{reviewTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.SysServiceTask">
+    update sys_service_task
+    <set>
+      <if test="orderId != null">
+        order_id = #{orderId,jdbcType=BIGINT},
+      </if>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=TINYINT},
+      </if>
+      <if test="doctorState != null">
+        doctor_state = #{doctorState,jdbcType=TINYINT},
+      </if>
+      <if test="taskState != null">
+        task_state = #{taskState,jdbcType=TINYINT},
+      </if>
+      <if test="serviceDoctorId != null">
+        service_doctor_id = #{serviceDoctorId,jdbcType=BIGINT},
+      </if>
+      <if test="reviewTime != null">
+        review_time = #{reviewTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="doctorStartTime != null">
+          doctor_start_time = #{doctorStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="doctorEndTime != null">
+          doctor_end_time = #{doctorEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="version != null">
+        version = version+1,
+      </if>
+      <if test="operator != null">
+        operator = #{operator},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+    <if test="version != null">
+       AND version = #{version}
+    </if>
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.SysServiceTask">
+    update sys_service_task
+    set order_id = #{orderId,jdbcType=BIGINT},
+      name = #{name,jdbcType=VARCHAR},
+      type = #{type,jdbcType=TINYINT},
+      doctor_state = #{doctorState,jdbcType=TINYINT},
+      task_state = #{taskState,jdbcType=TINYINT},
+      service_doctor_id = #{serviceDoctorId,jdbcType=BIGINT},
+      review_time = #{reviewTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="releaseTaskByOperator" parameterType="map">
+    update sys_service_task set update_time=#{params.now}, operator=NULL ,task_state=#{params.state} WHERE operator=#{params.operator}
+  </update>
+  <select id="selectById" parameterType="long" resultType="com.yhyt.health.model.dto.ServiceDetailDTO">
+    select sst.id ,o.order_no orderNo,sst.name ,h.name hospital,dept.name department,o.state orderState,
+    o.pay_time payTime,o.update_time refundTime,p.realname patientRealName,p.username patientUserName,
+    p.sex,p.idno cardNo,p.username mobile,idep.department_id deptId,p.id patientId,
+    sst.doctor_state doctorState,sst.task_state taskState,sst.operator,o.id orderId,sst.version
+
+     from sys_service_task sst join   `order` o on o.id=sst.order_id and o.item_type=2
+    join item item on o.item_id=item.id
+    left join item_department idep on idep.item_id=item.id
+    left join department dept on dept.id=idep.department_id
+    LEFT join hospital h on h.id=idep.hospital_id
+    join patient p on p.id=o.patient_id_owner
+    where sst.id=#{id}
+  </select>
+  <select id="selectServiceListPage" parameterType="map" resultType="com.yhyt.health.model.dto.CustomerServiceDTO">
+    select sst.id,sst.update_time createTime,sst.type,sst.name,concat(h.name,'',dept.name) hospital,
+    p.username patientUserName,p.realname patientRealName,o.pay_time payTime,o.update_time refundTime,
+      task_state  taskState,sst.operator
+    from sys_service_task sst join `order` o on o.id=sst.order_id and o.item_type=2
+    join `item` on o.item_id=item.id
+    left join item_department idep on idep.item_id=item.id
+    left join department dept on dept.id=idep.department_id
+    LEFT join hospital h on h.id=idep.hospital_id
+    join patient p on p.id=o.patient_id_owner
+    where 1=1
+    <if test="map.patientName!=null and map.patientName!=''">
+      and p.username like concat ('%',#{map.patientName},'%')
+    </if>
+    <if test="map.orderName!=null and map.orderName!=''">
+      and sst.name like concat ('%',#{map.orderName},'%')
+    </if>
+    <if test="map.taskType!=null and map.taskType!=0">
+      and type=#{map.taskType}
+    </if>
+    <if test="map.taskState!=null and map.taskState!=0 and map.taskState!=3">
+      and task_state=#{map.taskState}
+    </if>
+    <if test="map.taskState!=null and map.taskState==3">
+      and task_state in (3,4,5)
+    </if>
+    <if test="map.taskStartTime!=null">
+      and create_time <![CDATA[>=]]> #{map.taskStartTime}
+    </if>
+    <if test="map.taskEndTime!=null">
+      and create_time <![CDATA[>=]]> #{map.taskEndTime}
+    </if>
+    order by sst.update_time DESC
+  </select>
+<select id="selectStatisticsCount" parameterType="com.yhyt.health.model.query.CustomerServiceQuery" resultType="com.yhyt.health.model.dto.TaskStatisticsDTO">
+  select
+  ifnull(sum(case WHEN task_state=1  then 1 else 0 end ),0) noDealCount,
+  ifnull(sum(case WHEN  task_state=2 then 1 else 0 end ),0) dealingCount,
+  ifnull(sum(case WHEN  task_state=3 or task_state=4 or task_state =5 then 1 else 0 end ),0) dealedCount
+
+  from sys_service_task sst join `order` o on o.id=sst.order_id and o.item_type=2
+  join patient p on p.id=o.patient_id_owner
+  where 1=1
+  <if test="patientName!=null and patientName!=''">
+    and p.username like concat ('%',#{patientName},'%')
+  </if>
+  <if test="orderName!=null and orderName!=''">
+    and name like concat ('%',#{orderName},'%')
+  </if>
+  <if test="taskType!=null and taskType!=0">
+    and type=#{taskType}
+  </if>
+  <if test="taskState!=null and taskState!=0">
+    and task_state=#{taskState}
+  </if>
+  <if test="taskStartTime!=null">
+    and create_time <![CDATA[>=]]> #{taskStartTime}
+  </if>
+  <if test="taskEndTime!=null">
+    and create_time <![CDATA[>=]]> #{taskEndTime}
+  </if>
+</select>
+  <select id="selectByOperator" parameterType="String" resultMap="BaseResultMap">
+    select doctor_state, task_state, id from sys_service_task where operator=#{operator}
+  </select>
+  <select id="getItems" parameterType="map" resultType="ItemListVo">
+    SELECT
+	sst.id,p.realname patient_name,CASE p.sex WHEN 1 THEN '男' WHEN 2 THEN '女' ELSE '' END patient_sex,
+    p.reside_location,i.`name` item_name,o.pay_time,sst.doctor_state
+  FROM
+      sys_service_task sst
+  LEFT JOIN `order` o ON sst.order_id = o.id
+  LEFT JOIN item i ON o.item_id = i.id AND o.item_type = '2'
+  LEFT JOIN item_department id ON i.id = id.item_id
+  LEFT JOIN patient p ON o.patient_id_purchaser = p.id
+  WHERE 1=1
+  <if test="departmentId != null">
+    AND id.department_id = #{departmentId}
+  </if>
+  <if test="patientId != null">
+    AND p.id = #{patientId}
+  </if>
+  <if test="doctorState != null">
+    AND sst.doctor_state =#{doctorState}
+  </if>
+  ORDER BY sst.update_time DESC
+  </select>
+  <select id="getItemCountsByState" parameterType="map" resultType="Long">
+    SELECT
+     COUNT(*)
+    FROM
+    sys_service_task sst
+    LEFT JOIN `order` o ON sst.order_id = o.id
+    LEFT JOIN item i ON o.item_id = i.id AND o.item_type = '2'
+    LEFT JOIN item_department id ON i.id = id.item_id
+    LEFT JOIN patient p ON o.patient_id_purchaser = p.id
+    WHERE 1=1
+    <if test="departmentId != null">
+      AND id.department_id = #{departmentId}
+    </if>
+    <if test="patientId != null">
+      AND p.id = #{patientId}
+    </if>
+    <if test="doctorState != null">
+      AND sst.doctor_state =#{doctorState}
+    </if>
+  </select>
+  <select id="getItem" parameterType="map" resultType="ServiceTaskVo">
+    SELECT
+	sst.id,
+	p.id patient_id,
+    p.realname patient_name,
+    CASE p.sex WHEN 1 THEN '男' WHEN 2 THEN '女' ELSE '' END patient_sex,
+    p.age patient_ages,
+    p.reside_location,
+      i.`name` item_name,
+      o.price,
+      sst.doctor_state,
+    CASE WHEN d.room_id IS NULL THEN '1' ELSE '2' END is_dialog_patient,
+    d.room_id,
+    pc.diseasedescription,
+    (SELECT pdr.main_diagnose FROM patient_diagnose_records pdr WHERE dialog_id = d.id ORDER BY pdr.create_time DESC limit 1) diagnoseResult
+    FROM
+        sys_service_task sst
+    LEFT JOIN `order` o ON sst.order_id = o.id
+    LEFT JOIN item i ON o.item_id = i.id AND o.item_type = '2'
+    LEFT JOIN item_department id ON i.id = id.item_id
+    LEFT JOIN dialog d ON d.department_id = id.department_id AND d.patient_id = o.patient_id_purchaser
+    LEFT JOIN patient p ON o.patient_id_purchaser = p .id
+    LEFT JOIN patient_casearchives pc ON id.department_id = pc.department_id AND p.id = pc.patient_id
+    WHERE sst.id = #{id}
+  </select>
+  <select id="getSysServiceTask" parameterType="map" resultType="SysServiceTaskVo">
+    SELECT
+	  sst.*,o.state order_state,o.pay_time,o.create_time order_time,pc.diseasedescription
+    FROM
+        sys_service_task sst
+    LEFT JOIN `order` o ON sst.order_id = o.id AND o.item_type ='2'
+    LEFT JOIN item i ON o.item_id = i.id
+    LEFT JOIN item_department id ON i.id = id.item_id
+    LEFT JOIN patient_casearchives pc ON o.patient_id_purchaser = pc.patient_id AND pc.department_id = id.department_id
+    WHERE o.id = #{id}
+  </select>
+  <select id="selectByOrderId" parameterType="long" resultMap="BaseResultMap">
+    select id,doctor_state, task_state from sys_service_task where  order_id = #{orderId,jdbcType=BIGINT}
+
+  </select>
+  <select id="getItemCountsByStates" parameterType="map" resultType="Long">
+    SELECT
+    COUNT(*)
+    FROM
+    sys_service_task sst
+    LEFT JOIN `order` o ON sst.order_id = o.id
+    LEFT JOIN item i ON o.item_id = i.id AND o.item_type = '2'
+    LEFT JOIN item_department id ON i.id = id.item_id
+    LEFT JOIN patient p ON o.patient_id_purchaser = p.id
+    WHERE 1=1
+    <if test="departmentId != null">
+      AND id.department_id = #{departmentId}
+    </if>
+    <if test="patientId != null">
+      AND p.id = #{patientId}
+    </if>
+    <if test="doctorStates != null and doctorStates.size > 0">
+      AND sst.doctor_state in
+      <foreach item="item" index="index" collection="doctorStates" open="(" separator="," close=")">
+        #{item}
+      </foreach>
+    </if>
+  </select>
+ </mapper>

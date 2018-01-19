@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yhyt.health.dao.ItemPictureMapper" >
+    <resultMap id="BaseResultMap" type="com.yhyt.health.model.ItemPicture" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="item_id" property="itemId" jdbcType="BIGINT" />
+        <result column="url" property="url" jdbcType="VARCHAR" />
+        <result column="sort_number" property="sortNumber" jdbcType="TINYINT" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+    <sql id="Base_Column_List" >
+        id, item_id, url, sort_number, create_time
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select
+        <include refid="Base_Column_List" />
+        from item_picture
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="getPictureUrls" resultType="java.lang.String">
+        select
+          CONCAT_WS("_",IFNULL(sort_number,""),IFNULL(url,"")) as picUrl
+        from item_picture
+        where item_id = #{itemId}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from item_picture
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByAppointField">
+
+        delete from item_picture
+        where ${whereField} = #{whereFieldValue}
+
+    </delete>
+
+    <insert id="insert" parameterType="com.yhyt.health.model.ItemPicture" >
+        insert into item_picture (id, item_id, url,
+        sort_number, create_time)
+        values (#{id,jdbcType=BIGINT}, #{itemId,jdbcType=BIGINT}, #{url,jdbcType=VARCHAR},
+        #{sortNumber,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective" parameterType="com.yhyt.health.model.ItemPicture" >
+        insert into item_picture
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="itemId != null" >
+                item_id,
+            </if>
+            <if test="url != null" >
+                url,
+            </if>
+            <if test="sortNumber != null" >
+                sort_number,
+            </if>
+            <if test="createTime != null" >
+                create_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="itemId != null" >
+                #{itemId,jdbcType=BIGINT},
+            </if>
+            <if test="url != null" >
+                #{url,jdbcType=VARCHAR},
+            </if>
+            <if test="sortNumber != null" >
+                #{sortNumber,jdbcType=TINYINT},
+            </if>
+            <if test="createTime != null" >
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.ItemPicture" >
+        update item_picture
+        <set >
+            <if test="itemId != null" >
+                item_id = #{itemId,jdbcType=BIGINT},
+            </if>
+            <if test="url != null" >
+                url = #{url,jdbcType=VARCHAR},
+            </if>
+            <if test="sortNumber != null" >
+                sort_number = #{sortNumber,jdbcType=TINYINT},
+            </if>
+            <if test="createTime != null" >
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.ItemPicture" >
+        update item_picture
+        set item_id = #{itemId,jdbcType=BIGINT},
+        url = #{url,jdbcType=VARCHAR},
+        sort_number = #{sortNumber,jdbcType=TINYINT},
+        create_time = #{createTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

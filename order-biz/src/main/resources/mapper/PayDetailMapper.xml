@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yhyt.health.dao.PayDetailMapper" >
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.PayDetail" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="orderId" property="orderid" jdbcType="VARCHAR" />
+    <result column="tranceId" property="tranceid" jdbcType="VARCHAR" />
+    <result column="money" property="money" jdbcType="DECIMAL" />
+    <result column="channel" property="channel" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="INTEGER" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="notify_url" property="notifyUrl" jdbcType="VARCHAR" />
+    <result column="params" property="params" jdbcType="VARCHAR" />
+    <result column="careate_time" property="careateTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="send" property="send" jdbcType="VARCHAR" />
+    <result column="payorderId" property="payorderid" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, orderId, tranceId, money, channel, state, remark, notify_url, params, careate_time, 
+    update_time, send, payorderId
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_pay_detail
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from t_pay_detail
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.PayDetail" >
+    insert into t_pay_detail (id, orderId, tranceId, 
+      money, channel, state, 
+      remark, notify_url, params, 
+      careate_time, update_time, send, 
+      payorderId)
+    values (#{id,jdbcType=BIGINT}, #{orderid,jdbcType=VARCHAR}, #{tranceid,jdbcType=VARCHAR}, 
+      #{money,jdbcType=DECIMAL}, #{channel,jdbcType=VARCHAR}, #{state,jdbcType=INTEGER}, 
+      #{remark,jdbcType=VARCHAR}, #{notifyUrl,jdbcType=VARCHAR}, #{params,jdbcType=VARCHAR}, 
+      #{careateTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{send,jdbcType=VARCHAR}, 
+      #{payorderid,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.PayDetail" >
+    insert into t_pay_detail
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="orderid != null" >
+        orderId,
+      </if>
+      <if test="tranceid != null" >
+        tranceId,
+      </if>
+      <if test="money != null" >
+        money,
+      </if>
+      <if test="channel != null" >
+        channel,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="notifyUrl != null" >
+        notify_url,
+      </if>
+      <if test="params != null" >
+        params,
+      </if>
+      <if test="careateTime != null" >
+        careate_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="send != null" >
+        send,
+      </if>
+      <if test="payorderid != null" >
+        payorderId,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="orderid != null" >
+        #{orderid,jdbcType=VARCHAR},
+      </if>
+      <if test="tranceid != null" >
+        #{tranceid,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null" >
+        #{money,jdbcType=DECIMAL},
+      </if>
+      <if test="channel != null" >
+        #{channel,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=INTEGER},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="notifyUrl != null" >
+        #{notifyUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="params != null" >
+        #{params,jdbcType=VARCHAR},
+      </if>
+      <if test="careateTime != null" >
+        #{careateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="send != null" >
+        #{send,jdbcType=VARCHAR},
+      </if>
+      <if test="payorderid != null" >
+        #{payorderid,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.PayDetail" >
+    update t_pay_detail
+    <set >
+      <if test="orderid != null" >
+        orderId = #{orderid,jdbcType=VARCHAR},
+      </if>
+      <if test="tranceid != null" >
+        tranceId = #{tranceid,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null" >
+        money = #{money,jdbcType=DECIMAL},
+      </if>
+      <if test="channel != null" >
+        channel = #{channel,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="notifyUrl != null" >
+        notify_url = #{notifyUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="params != null" >
+        params = #{params,jdbcType=VARCHAR},
+      </if>
+      <if test="careateTime != null" >
+        careate_time = #{careateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="send != null" >
+        send = #{send,jdbcType=VARCHAR},
+      </if>
+      <if test="payorderid != null" >
+        payorderId = #{payorderid,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.PayDetail" >
+    update t_pay_detail
+    set orderId = #{orderid,jdbcType=VARCHAR},
+      tranceId = #{tranceid,jdbcType=VARCHAR},
+      money = #{money,jdbcType=DECIMAL},
+      channel = #{channel,jdbcType=VARCHAR},
+      state = #{state,jdbcType=INTEGER},
+      remark = #{remark,jdbcType=VARCHAR},
+      notify_url = #{notifyUrl,jdbcType=VARCHAR},
+      params = #{params,jdbcType=VARCHAR},
+      careate_time = #{careateTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      send = #{send,jdbcType=VARCHAR},
+      payorderId = #{payorderid,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <select id="findPersistableList" parameterType="java.util.Map" resultMap="BaseResultMap">
+  	select <include refid="Base_Column_List" /> from t_pay_detail t
+  	<include refid="search_patientcomplaint"></include>
+    order by careate_time DESC 
+  </select>
+  
+    <!-- 账户列表搜索条件  -->
+  <sql id="search_patientcomplaint">
+    <trim prefix="WHERE" prefixOverrides="AND|OR">
+      	<if test="id!=null">and t.id = #{id,jdbcType=BIGINT}</if>
+    	<if test="tranceId!=null">and t.tranceId = #{tranceId,jdbcType=VARCHAR}</if>
+    	<if test="channel!=null">and t.channel = #{channel,jdbcType=VARCHAR}</if>
+    	<if test="payorderId!=null">and t.payorderId = #{payorderId,jdbcType=VARCHAR}</if>
+    	<if test="orderId!=null">and t.orderId = #{orderId,jdbcType=VARCHAR}</if>
+    	<if test="state!=null">and t.state = #{state}</if>
+    </trim>
+  </sql>
+  
+  <select id="findRefundPayDetail" parameterType="java.util.Map" resultMap="BaseResultMap">
+  	select id, orderId, tranceId, money, channel, state, remark, notify_url, careate_time, update_time, payorderId from t_pay_detail t
+  		where t.state in (7,8,4,6)
+    	<if test="tranceId!=null">and t.tranceId = #{tranceId,jdbcType=VARCHAR}</if>
+    	<if test="channel!=null">and t.channel = #{channel,jdbcType=VARCHAR}</if>
+    	<if test="orderId!=null">and t.orderId = #{orderId,jdbcType=VARCHAR}</if>
+    	order by t.id desc
+    	limit 3
+  </select>
+  <update id="updatePayDetail" parameterType="com.yhyt.health.model.PayDetail">
+    update t_pay_detail set state=#{state},update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where orderId = #{orderid,jdbcType=VARCHAR}
+    and tranceId is not NULL
+    <if test="channel!=null">and channel = #{channel,jdbcType=VARCHAR}</if>
+  </update>
+  <delete id="deleteByOrderIdAndState" >
+    delete from t_pay_detail where state in (#{state}) and orderId=#{orderId}
+  </delete>
+  <delete id="deletePayDetail" parameterType="map">
+    delete from t_pay_detail where 1=1
+    <if test="params.orderId!=null">
+      and orderId = #{params.orderId,jdbcType=VARCHAR}
+    </if>
+    <if test="params.channel!=null">
+      and channel = #{params.channel,jdbcType=VARCHAR}
+    </if>
+
+  </delete>
+</mapper>

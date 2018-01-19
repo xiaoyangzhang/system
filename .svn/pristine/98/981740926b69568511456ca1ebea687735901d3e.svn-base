@@ -1,0 +1,36 @@
+package com.yhyt.health.dao;
+
+import com.yhyt.health.model.Order;
+import com.yhyt.health.model.OrderDetail;
+import com.yhyt.health.model.OrderVo;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Map;
+
+@Repository
+public interface OrderMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(Order record);
+    
+    int insertForfree(Order record);
+
+    int insertSelective(Order record);
+
+    Order selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(Order record);
+    
+    int updateDetailByPrimaryKeySelective(OrderDetail record);
+
+    int updateByPrimaryKey(Order record);
+    
+    List<Order> getOrder(Map<String, Object> map);
+    
+    int updateAndCheck(Order order,Map<String,Object> params);
+    int updateByOrderNo(@Param("orderNo") String orderNo,@Param("payType") Byte payType);
+    int updateOrderStateByOrderNo(Order order);
+    OrderVo selectByOrderNo(String orderNo);
+}

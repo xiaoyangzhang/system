@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.QuestionnairePictureMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.QuestionnairePicture">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="questionnaire_item_id" jdbcType="BIGINT" property="questionnaireItemId" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, questionnaire_item_id, url, create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from questionnaire_picture
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from questionnaire_picture
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.QuestionnairePicture">
+    insert into questionnaire_picture (id, questionnaire_item_id, url, 
+      create_time)
+    values (#{id,jdbcType=BIGINT}, #{questionnaireItemId,jdbcType=BIGINT}, #{url,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.QuestionnairePicture">
+    insert into questionnaire_picture
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="questionnaireItemId != null">
+        questionnaire_item_id,
+      </if>
+      <if test="url != null">
+        url,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="questionnaireItemId != null">
+        #{questionnaireItemId,jdbcType=BIGINT},
+      </if>
+      <if test="url != null">
+        #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.QuestionnairePicture">
+    update questionnaire_picture
+    <set>
+      <if test="questionnaireItemId != null">
+        questionnaire_item_id = #{questionnaireItemId,jdbcType=BIGINT},
+      </if>
+      <if test="url != null">
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.QuestionnairePicture">
+    update questionnaire_picture
+    set questionnaire_item_id = #{questionnaireItemId,jdbcType=BIGINT},
+      url = #{url,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByQuestionnaireId" parameterType="long" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/> from questionnaire_picture where questionnaire_item_id = #{questionnaireItemId,jdbcType=BIGINT}
+  </select>
+</mapper>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.QuestionnaireDeptMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.QuestionnaireDept">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="questionnaire_id" jdbcType="BIGINT" property="questionnaireId" />
+    <result column="dict_department_id" jdbcType="BIGINT" property="dictDepartmentId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, questionnaire_id, dict_department_id, create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from questionnaire_dept
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from questionnaire_dept
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.QuestionnaireDept">
+    insert into questionnaire_dept (id, questionnaire_id, dict_department_id, 
+      create_time)
+    values (#{id,jdbcType=BIGINT}, #{questionnaireId,jdbcType=BIGINT}, #{dictDepartmentId,jdbcType=BIGINT}, 
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.QuestionnaireDept">
+    insert into questionnaire_dept
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="questionnaireId != null">
+        questionnaire_id,
+      </if>
+      <if test="dictDepartmentId != null">
+        dict_department_id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="questionnaireId != null">
+        #{questionnaireId,jdbcType=BIGINT},
+      </if>
+      <if test="dictDepartmentId != null">
+        #{dictDepartmentId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.QuestionnaireDept">
+    update questionnaire_dept
+    <set>
+      <if test="questionnaireId != null">
+        questionnaire_id = #{questionnaireId,jdbcType=BIGINT},
+      </if>
+      <if test="dictDepartmentId != null">
+        dict_department_id = #{dictDepartmentId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.QuestionnaireDept">
+    update questionnaire_dept
+    set questionnaire_id = #{questionnaireId,jdbcType=BIGINT},
+      dict_department_id = #{dictDepartmentId,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByQuestionnaireId" parameterType="long" resultType="com.yhyt.health.model.dto.QuestionnaireDeptDTO">
+    select qd.id,if(qd.dict_department_id=0,'通用',dd.child_name) `name`,dict_department_id dictDepartmentId from questionnaire_dept qd join dict_department dd on qd.dict_department_id=dd.id where questionnaire_id = #{questionnaireId,jdbcType=BIGINT}
+  </select>
+  <select id="selectQuestionnaireDeptById" parameterType="long" resultMap="BaseResultMap">
+    select     <include refid="Base_Column_List" /> from questionnaire_dept where questionnaire_id = #{questionnaireId,jdbcType=BIGINT}
+
+  </select>
+  <insert id="insertBatch" parameterType="list" >
+  insert into questionnaire_dept ( questionnaire_id, dict_department_id,
+      create_time)
+    values
+    <foreach collection="list" item="item" separator=",">
+
+    ( #{item.questionnaireId,jdbcType=BIGINT}, #{item.dictDepartmentId,jdbcType=BIGINT},
+      #{item.createTime,jdbcType=TIMESTAMP})
+    </foreach>
+  </insert>
+  <select id="selectQuestionnaireDeptByDeptId" parameterType="long" resultMap="BaseResultMap">
+    select questionnaire_id from questionnaire_dept where dict_department_id = #{dictDepartmentId,jdbcType=BIGINT}
+  </select>
+</mapper>

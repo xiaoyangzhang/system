@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.DictDiseaseGroupRelationMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.DictDiseaseGroupRelation">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="dict_disease_group_id" jdbcType="BIGINT" property="dictDiseaseGroupId" />
+    <result column="dict_disease_id" jdbcType="BIGINT" property="dictDiseaseId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, dict_disease_group_id, dict_disease_id, create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from dict_disease_group_relation
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from dict_disease_group_relation
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.DictDiseaseGroupRelation">
+    insert into dict_disease_group_relation (id, dict_disease_group_id, dict_disease_id, 
+      create_time)
+    values (#{id,jdbcType=BIGINT}, #{dictDiseaseGroupId,jdbcType=BIGINT}, #{dictDiseaseId,jdbcType=BIGINT}, 
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.DictDiseaseGroupRelation">
+    insert into dict_disease_group_relation
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="dictDiseaseGroupId != null">
+        dict_disease_group_id,
+      </if>
+      <if test="dictDiseaseId != null">
+        dict_disease_id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="dictDiseaseGroupId != null">
+        #{dictDiseaseGroupId,jdbcType=BIGINT},
+      </if>
+      <if test="dictDiseaseId != null">
+        #{dictDiseaseId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.DictDiseaseGroupRelation">
+    update dict_disease_group_relation
+    <set>
+      <if test="dictDiseaseGroupId != null">
+        dict_disease_group_id = #{dictDiseaseGroupId,jdbcType=BIGINT},
+      </if>
+      <if test="dictDiseaseId != null">
+        dict_disease_id = #{dictDiseaseId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.DictDiseaseGroupRelation">
+    update dict_disease_group_relation
+    set dict_disease_group_id = #{dictDiseaseGroupId,jdbcType=BIGINT},
+      dict_disease_id = #{dictDiseaseId,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <select id="findRelationList" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List" />
+        from dict_disease_group_relation t
+        where t.dict_disease_group_id = #{param1,jdbcType=BIGINT} 
+        and t.dict_disease_id in 
+        <foreach collection="param2 " item="diseaseId" index="index"
+            open="(" close=")" separator=",">
+            #{diseaseId,jdbcType=BIGINT}
+        </foreach>
+    </select>
+    
+    <insert id="inertBatch">  
+	    insert into dict_disease_group_relation (dict_disease_group_id,dict_disease_id,create_time)   
+	    values  
+	    <foreach collection="param2" item="item" index="index" separator="," >  
+	        (#{param1},#{item},SYSDATE())  
+	    </foreach>  
+	</insert>  
+	<delete id="delete" parameterType="java.util.Map">
+  		delete from dict_disease_group_relation 
+    	<trim prefix="WHERE" prefixOverrides="AND|OR">
+	      	<if test="diseaseId!=null">and dict_disease_id = #{diseaseId,jdbcType=BIGINT}</if> 
+	      	<if test="diseaseGroupId!=null"> and dict_disease_group_id = #{diseaseGroupId,jdbcType=BIGINT}</if> 
+	    </trim>
+  	</delete>
+</mapper>

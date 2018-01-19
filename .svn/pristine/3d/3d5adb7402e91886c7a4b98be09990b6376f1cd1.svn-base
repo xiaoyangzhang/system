@@ -1,0 +1,17 @@
+package com.yhyt.health.dao;
+
+import com.yhyt.health.model.ItemDisease;
+
+public interface ItemDiseaseMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(ItemDisease record);
+
+    int insertSelective(ItemDisease record);
+
+    ItemDisease selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(ItemDisease record);
+
+    int updateByPrimaryKey(ItemDisease record);
+}

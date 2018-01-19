@@ -1,0 +1,26 @@
+package com.yhyt.health.dao;
+
+import com.yhyt.health.model.QuestionnaireItem;
+import com.yhyt.health.model.dto.QuestionnaireAppCard;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Map;
+
+@Repository
+public interface QuestionnaireItemMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(QuestionnaireItem record);
+
+    int insertSelective(QuestionnaireItem record);
+
+    QuestionnaireItem selectByPrimaryKey(Long id);
+    List<QuestionnaireItem> selectByQuestionnaireId(Long questionnaireId);
+
+    int updateByPrimaryKeySelective(QuestionnaireItem record);
+
+    int updateByPrimaryKey(QuestionnaireItem record);
+
+    List<QuestionnaireAppCard> selectQuestionnaireCard(Map<String, Object> map);
+}

@@ -1,0 +1,14 @@
+package com.yhyt.health.service;
+
+import com.yhyt.health.model.Order;
+import com.yhyt.health.model.OrderVo;
+import com.yhyt.health.result.AppResult;
+
+public interface OrderService {
+
+	AppResult getOrder(Order der);
+	AppResult getOrderRemainCount(Order der);
+	AppResult placeOrder(OrderVo orderVo);
+	AppResult giveOrder(OrderVo orderVo);
+	AppResult updateOrderState(Long orderId,Byte state);
+}

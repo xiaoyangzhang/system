@@ -1,0 +1,535 @@
+package com.yhyt.health.model.dto;
+
+import com.yhyt.health.model.ItemDisease;
+import com.yhyt.health.model.ItemLog;
+import org.hibernate.validator.constraints.NotBlank;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+
+public class ItemBodyReturnVo {
+
+    private Long id;
+
+    /**
+     * 商品编号
+     */
+    private String code;
+
+    /**
+     * 品牌名称
+     */
+    private String brand;
+
+    /**
+     * 商品名称
+     */
+    private String name;
+
+    /**
+     * 商品分类
+     */
+    private Long categoryDictId;
+
+    /**
+     * 商品价格
+     */
+    private BigDecimal price;
+
+    /**
+     * 分成比例
+     */
+    private Integer ratio;
+
+    /**
+     * 有效期
+     */
+    private Integer expireDate;
+
+    /**
+     * 发布端
+     */
+    private Byte releaseClient;
+
+    /**
+     * 发布位置
+     */
+    private Byte releasePlace;
+
+    /**
+     * 置顶顺序
+     */
+    private Byte topOrder;
+
+    /**
+     * 商品描述
+     */
+    private String description;
+
+    /**
+     * 商品列表图
+     */
+    private String navigationPicUrl;
+
+    /**
+     * 商品详情top图
+     */
+    private String topPicUrl;
+
+    /**
+     * 是否引用链接 1:否 2:是
+     */
+    private Byte isQuote;
+
+    /**
+     *引用链接url
+     */
+    private String quoteUrl;
+
+    /**
+     * 题图
+     */
+    private String titlePic;
+
+    /**
+     * 标题
+     */
+    private String subtitle;
+
+    /**
+     * 生成的h5链接地址
+     */
+    private String h5Url;
+
+    /**
+     * 商品状态 1:待处理 2:上架 3:处理中 4:下架
+     */
+    private Byte state;
+
+    /**
+     * 上架时间
+     */
+    private String onshelfDay;
+
+    /**
+     * 下架时间
+     */
+    private String offshelfDay;
+
+    /**
+     * 操作者
+     */
+    private String createOperator;
+
+    private Date updateTime;
+
+    private Date createTime;
+
+    private String body;
+
+    /**
+     * 商品关联疾病列表
+     */
+    private List<ItemDiseaseDTO> dictDiseaseIds;
+
+    /**
+     * 商品关联医院id
+     */
+    private Long hospitalId;
+
+    /**
+     * 商品关联科室id
+     */
+    private Long departmentId;
+
+    /**
+     * 商品关联医院名称
+     */
+    private String hospitalName;
+
+    /**
+     * 商品关联科室名称
+     */
+    private String departmentName;
+
+    /**
+     * 内容详情图片列表
+     */
+    private List<String> contentDetailsPicture;
+
+    private List<ItemLog> itemLogs;
+
+
+
+    /**
+     * 商品关联疾病列表
+     * @return
+     */
+    public List<ItemDiseaseDTO> getDictDiseaseIds() {  return dictDiseaseIds; }
+
+    /**
+     * 商品关联疾病列表
+     * @param dictDiseaseIds
+     */
+    public void setDictDiseaseIds(List<ItemDiseaseDTO> dictDiseaseIds) { this.dictDiseaseIds = dictDiseaseIds; }
+
+    /**
+     * id
+     * @return
+     */
+    public Long getId() { return id;  }
+
+    /**
+     * id
+     * @param id
+     */
+    public void setId(Long id) { this.id = id; }
+
+    /**
+     * 商品编号
+     * @return
+     */
+    public String getCode() { return code; }
+
+    /**
+     * 商品编号
+     * @param code
+     */
+    public void setCode(String code) { this.code = code; }
+
+    /**
+     * 品牌名称
+     * @return
+     */
+    public String getBrand() { return brand; }
+
+    /**
+     * 品牌名称
+     * @param brand
+     */
+    public void setBrand(String brand) { this.brand = brand; }
+
+    /**
+     * 商品名称
+     * @return
+     */
+    public String getName() { return name; }
+
+    /**
+     * 商品名称
+     * @param name
+     */
+    public void setName(String name) { this.name = name; }
+
+    /**
+     * 商品分类
+     * @return
+     */
+    public Long getCategoryDictId() { return categoryDictId; }
+
+    /**
+     * 商品分类
+     * @param categoryDictId
+     */
+    public void setCategoryDictId(Long categoryDictId) {  this.categoryDictId = categoryDictId; }
+
+    /**
+     * 商品价格
+     * @return
+     */
+    public BigDecimal getPrice() { return price; }
+
+    /**
+     * 商品价格
+     * @param price
+     */
+    public void setPrice(BigDecimal price) { this.price = price; }
+
+    /**
+     * 分成比例
+     * @return
+     */
+    public Integer getRatio() { return ratio; }
+
+    /**
+     * 分成比例
+     * @param ratio
+     */
+    public void setRatio(Integer ratio) { this.ratio = ratio; }
+
+    /**
+     * 有效期
+     * @return
+     */
+    public Integer getExpireDate() { return expireDate; }
+
+    /**
+     * 有效期
+     * @param expireDate
+     */
+    public void setExpireDate(Integer expireDate) { this.expireDate = expireDate; }
+
+    /**
+     * 发布端
+     * @return
+     */
+    public Byte getReleaseClient() { return releaseClient; }
+
+    /**
+     * 发布端
+     * @param releaseClient
+     */
+    public void setReleaseClient(Byte releaseClient) { this.releaseClient = releaseClient; }
+
+    /**
+     * 发布位置
+     * @return
+     */
+    public Byte getReleasePlace() { return releasePlace; }
+
+    /**
+     * 发布位置
+     * @param releasePlace
+     */
+    public void setReleasePlace(Byte releasePlace) { this.releasePlace = releasePlace; }
+
+    /**
+     * 置顶顺序
+     * @return
+     */
+    public Byte getTopOrder() { return topOrder; }
+
+    /**
+     * 置顶顺序
+     * @param topOrder
+     */
+    public void setTopOrder(Byte topOrder) { this.topOrder = topOrder; }
+
+    /**
+     * 商品描述
+     * @return
+     */
+    public String getDescription() {  return description;  }
+
+    /**
+     * 商品描述
+     * @param description
+     */
+    public void setDescription(String description) { this.description = description; }
+
+    /**
+     * 商品列表图
+     * @return
+     */
+    public String getNavigationPicUrl() {  return navigationPicUrl; }
+
+    /**
+     * 商品列表图
+     * @param navigationPicUrl
+     */
+    public void setNavigationPicUrl(String navigationPicUrl) { this.navigationPicUrl = navigationPicUrl; }
+
+    /**
+     * 商品详情top图
+     * @return
+     */
+    public String getTopPicUrl() { return topPicUrl; }
+
+    /**
+     * 商品详情top图
+     * @param topPicUrl
+     */
+    public void setTopPicUrl(String topPicUrl) { this.topPicUrl = topPicUrl; }
+
+    /**
+     * 是否引用链接 1:否 2:是
+     * @return
+     */
+    public Byte getIsQuote() { return isQuote; }
+
+    /**
+     * 是否引用链接 1:否 2:是
+     * @param isQuote
+     */
+    public void setIsQuote(Byte isQuote) { this.isQuote = isQuote; }
+
+    /**
+     * 引用链接url
+     * @return
+     */
+    public String getQuoteUrl() { return quoteUrl;  }
+
+    /**
+     * 引用链接url
+     * @param quoteUrl
+     */
+    public void setQuoteUrl(String quoteUrl) { this.quoteUrl = quoteUrl; }
+
+    /**
+     * 题图
+     * @return
+     */
+    public String getTitlePic() { return titlePic; }
+
+    /**
+     * 题图
+     * @param titlePic
+     */
+    public void setTitlePic(String titlePic) { this.titlePic = titlePic; }
+
+    /**
+     * 标题
+     * @return
+     */
+    public String getSubtitle() { return subtitle; }
+
+    /**
+     * 标题
+     * @param subtitle
+     */
+    public void setSubtitle(String subtitle) { this.subtitle = subtitle; }
+
+    /**
+     * 生成的h5外部链接
+     * @return
+     */
+    public String getH5Url() { return h5Url; }
+
+    /**
+     * 生成的h5外部链接
+     * @param h5Url
+     */
+    public void setH5Url(String h5Url) { this.h5Url = h5Url; }
+
+    /**
+     * 商品状态 1:待处理 2:上架 3:处理中 4:下架
+     * @return
+     */
+    public Byte getState() { return state; }
+
+    /**
+     * 商品状态 1:待处理 2:上架 3:处理中 4:下架
+     * @param state
+     */
+    public void setState(Byte state) { this.state = state; }
+
+    /**
+     * 上架时间
+     * @return
+     */
+    public String getOnshelfDay() { return onshelfDay;  }
+
+    /**
+     * 上架时间
+     * @param onshelfDay
+     */
+    public void setOnshelfDay(String onshelfDay) {  this.onshelfDay = onshelfDay; }
+
+    /**
+     * 下架时间
+     * @return
+     */
+    public String getOffshelfDay() { return offshelfDay; }
+
+    /**
+     * 下架时间
+     * @param offshelfDay
+     */
+    public void setOffshelfDay(String offshelfDay) { this.offshelfDay = offshelfDay; }
+
+    /**
+     * 操作者
+     * @return
+     */
+    public String getCreateOperator() { return createOperator; }
+
+    /**
+     * 操作者
+     * @param createOperator
+     */
+    public void setCreateOperator(String createOperator) { this.createOperator = createOperator; }
+
+    /**
+     *
+     * @return
+     */
+    public Date getUpdateTime() { return updateTime; }
+
+    /**
+     *
+     * @param updateTime
+     */
+    public void setUpdateTime(Date updateTime) {  this.updateTime = updateTime; }
+
+    /**
+     *
+     * @return
+     */
+    public Date getCreateTime() { return createTime; }
+
+    /**
+     *
+     * @param createTime
+     */
+    public void setCreateTime(Date createTime) { this.createTime = createTime; }
+
+    /**
+     *
+     * @return
+     */
+    public String getBody() { return body; }
+
+    /**
+     *
+     * @param body
+     */
+    public void setBody(String body) { this.body = body; }
+
+    /**
+     *
+     * @return
+     */
+    public Long getHospitalId() {  return hospitalId; }
+
+    /**
+     *
+     * @param hospitalId
+     */
+    public void setHospitalId(Long hospitalId) { this.hospitalId = hospitalId; }
+
+    /**
+     *
+     * @return
+     */
+    public Long getDepartmentId() { return departmentId; }
+
+    /**
+     *
+     * @param departmentId
+     */
+    public void setDepartmentId(Long departmentId) { this.departmentId = departmentId; }
+
+    public String getHospitalName() { return hospitalName; }
+
+    public void setHospitalName(String hospitalName) { this.hospitalName = hospitalName; }
+
+    public String getDepartmentName() { return departmentName; }
+
+    public void setDepartmentName(String departmentName) { this.departmentName = departmentName; }
+
+    public List<String> getContentDetailsPicture() { return contentDetailsPicture; }
+
+    public void setContentDetailsPicture(List<String> contentDetailsPicture) { this.contentDetailsPicture = contentDetailsPicture; }
+
+    public List<ItemLog> getItemLogs() {
+        return itemLogs;
+    }
+
+    public void setItemLogs(List<ItemLog> itemLogs) {
+        this.itemLogs = itemLogs;
+    }
+}

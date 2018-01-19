@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.SysServiceTaskMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.SysServiceTask">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="order_id" jdbcType="BIGINT" property="orderId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="type" jdbcType="TINYINT" property="type" />
+    <result column="doctor_state" jdbcType="TINYINT" property="doctorState" />
+    <result column="task_state" jdbcType="TINYINT" property="taskState" />
+    <result column="service_doctor_id" jdbcType="BIGINT" property="serviceDoctorId" />
+    <result column="review_time" jdbcType="TIMESTAMP" property="reviewTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, order_id, name, type, doctor_state, task_state, service_doctor_id, review_time, 
+    update_time, create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from sys_service_task
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from sys_service_task
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.SysServiceTask">
+    insert into sys_service_task (id, order_id, name, 
+      type, doctor_state, task_state, 
+      service_doctor_id, review_time, update_time, 
+      create_time)
+    values (#{id,jdbcType=BIGINT}, #{orderId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, 
+      #{type,jdbcType=TINYINT}, #{doctorState,jdbcType=TINYINT}, #{taskState,jdbcType=TINYINT}, 
+      #{serviceDoctorId,jdbcType=BIGINT}, #{reviewTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.SysServiceTask">
+    insert into sys_service_task
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="orderId != null">
+        order_id,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="doctorState != null">
+        doctor_state,
+      </if>
+      <if test="taskState != null">
+        task_state,
+      </if>
+      <if test="serviceDoctorId != null">
+        service_doctor_id,
+      </if>
+      <if test="reviewTime != null">
+        review_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="orderId != null">
+        #{orderId,jdbcType=BIGINT},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=TINYINT},
+      </if>
+      <if test="doctorState != null">
+        #{doctorState,jdbcType=TINYINT},
+      </if>
+      <if test="taskState != null">
+        #{taskState,jdbcType=TINYINT},
+      </if>
+      <if test="serviceDoctorId != null">
+        #{serviceDoctorId,jdbcType=BIGINT},
+      </if>
+      <if test="reviewTime != null">
+        #{reviewTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.SysServiceTask">
+    update sys_service_task
+    <set>
+      <if test="orderId != null">
+        order_id = #{orderId,jdbcType=BIGINT},
+      </if>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=TINYINT},
+      </if>
+      <if test="doctorState != null">
+        doctor_state = #{doctorState,jdbcType=TINYINT},
+      </if>
+      <if test="taskState != null">
+        task_state = #{taskState,jdbcType=TINYINT},
+      </if>
+      <if test="serviceDoctorId != null">
+        service_doctor_id = #{serviceDoctorId,jdbcType=BIGINT},
+      </if>
+      <if test="reviewTime != null">
+        review_time = #{reviewTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.SysServiceTask">
+    update sys_service_task
+    set order_id = #{orderId,jdbcType=BIGINT},
+      name = #{name,jdbcType=VARCHAR},
+      type = #{type,jdbcType=TINYINT},
+      doctor_state = #{doctorState,jdbcType=TINYINT},
+      task_state = #{taskState,jdbcType=TINYINT},
+      service_doctor_id = #{serviceDoctorId,jdbcType=BIGINT},
+      review_time = #{reviewTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,17 @@
+package com.yhyt.health.dao;
+
+import com.yhyt.health.model.ItemDepartment;
+
+public interface ItemDepartmentMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(ItemDepartment record);
+
+    int insertSelective(ItemDepartment record);
+
+    ItemDepartment selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(ItemDepartment record);
+
+    int updateByPrimaryKey(ItemDepartment record);
+}

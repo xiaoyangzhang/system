@@ -1,0 +1,62 @@
+package com.yhyt.health.controller;
+
+import com.alibaba.fastjson.JSON;
+import com.yhyt.health.model.dto.CustomerServiceDTO;
+import com.yhyt.health.model.dto.ServiceDetailDTO;
+import com.yhyt.health.model.dto.TaskStatisticsDTO;
+import com.yhyt.health.model.query.CustomerServiceQuery;
+import com.yhyt.health.service.CustomerService;
+import com.yhyt.health.spring.AppResult;
+import com.yhyt.health.util.Page;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+public class ServiceTaskController {
+
+    private static Logger logger = LoggerFactory.getLogger(ServiceTaskController.class);
+
+    @Autowired
+    private CustomerService customerService;
+    @GetMapping("/tasks")
+    public Page<CustomerServiceDTO> selectServiceTaskListPage( @RequestParam("queryStr") String query){
+        CustomerServiceQuery serviceQuery = JSON.parseObject(query, CustomerServiceQuery.class);
+        return customerService.selectServiceListPage(serviceQuery);
+    }
+
+    @GetMapping("/task/statistics")
+    public TaskStatisticsDTO selectServiceTaskStatistics(@RequestParam("queryStr") String query){
+        CustomerServiceQuery serviceQuery = JSON.parseObject(query, CustomerServiceQuery.class);
+        return customerService.selectStatisticsCount(serviceQuery);
+    }
+
+    @GetMapping("/task/{id}")
+    public ServiceDetailDTO selectById(@PathVariable("id")Long id){
+        return customerService.selectById(id);
+    }
+
+    @PatchMapping("/task/release/{operator}")
+    public AppResult releaseTasks(@PathVariable("operator")String operator){
+        AppResult appResult = new AppResult();
+        customerService.releaseTaskByOperator(operator);
+        return appResult;
+    }
+
+    @PatchMapping("/task/state/update")
+    public AppResult updateTaskState(@RequestParam(name = "id") Long id,
+                                     @RequestParam(name = "state")Byte state,
+                                     @RequestParam(name = "content")String content,
+                                     @RequestParam(name = "action")String action,
+                                     @RequestParam(name = "operator")String operator){
+        AppResult appResult = new AppResult();
+        customerService.updateTaskState(id,state,content,operator,action);
+        return appResult;
+    }
+
+    @GetMapping("/task/order/{orderId}")
+    public AppResult selectByOrderId(@PathVariable("orderId")Long orderId){
+        return customerService.selectByOrderId(orderId);
+    }
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/business-api/business-api.iml" filepath="$PROJECT_DIR$/business-api/business-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/business-biz/business-biz.iml" filepath="$PROJECT_DIR$/business-biz/business-biz.iml" />
+      <module fileurl="file://$PROJECT_DIR$/business-client/business-client.iml" filepath="$PROJECT_DIR$/business-client/business-client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dic-api/dic-api.iml" filepath="$PROJECT_DIR$/dic-api/dic-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dic-biz/dic-biz.iml" filepath="$PROJECT_DIR$/dic-biz/dic-biz.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dic-client/dic-client.iml" filepath="$PROJECT_DIR$/dic-client/dic-client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/health-system.iml" filepath="$PROJECT_DIR$/health-system.iml" />
+      <module fileurl="file://$PROJECT_DIR$/order-api/order-api.iml" filepath="$PROJECT_DIR$/order-api/order-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/order-biz/order-biz.iml" filepath="$PROJECT_DIR$/order-biz/order-biz.iml" />
+      <module fileurl="file://$PROJECT_DIR$/order-client/order-client.iml" filepath="$PROJECT_DIR$/order-client/order-client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/system-biz/system-biz.iml" filepath="$PROJECT_DIR$/system-biz/system-biz.iml" />
+    </modules>
+  </component>
+</project>

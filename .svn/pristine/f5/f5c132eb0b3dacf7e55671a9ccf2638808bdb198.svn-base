@@ -1,0 +1,51 @@
+package com.yhyt.health.dao;
+
+import com.yhyt.health.model.ItemDisease;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface ItemDiseaseMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(ItemDisease record);
+
+    int insertSelective(ItemDisease record);
+
+    ItemDisease selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(ItemDisease record);
+
+    int updateByPrimaryKey(ItemDisease record);
+
+    /**
+     * 根据指定字段更新商品关联疾病表
+     * @param field
+     * @param whereField
+     * @param setValue
+     * @param whereValue
+     * @return
+     */
+    int updateItemDiseaseByAppointField(final @Param("setField") String field,
+                                        final @Param("whereField") String whereField,
+                                        final @Param("setValue") Object setValue,
+                                        final @Param("whereValue") Object whereValue);
+
+    /**
+     * 根据指定字段删除商品关联疾病信息
+     * @param whereField
+     * @param whereValue
+     * @return
+     */
+    int deleteByAppointField(final @Param("whereField") String whereField,
+                             final @Param("whereValue") Object whereValue);
+
+    /**
+     * 根据商品id 获取商品对应疾病id列表
+     * @param itemId
+     * @return
+     */
+    List<Long> getdDiseaseIdByItemId(final @Param("itemId") Long itemId);
+}

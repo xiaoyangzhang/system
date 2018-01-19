@@ -1,0 +1,69 @@
+package com.yhyt.health.dao;
+
+import com.yhyt.health.model.Item;
+import com.yhyt.health.model.dto.ItemBody;
+import com.yhyt.health.model.dto.ItemBodyReturnVo;
+import com.yhyt.health.model.dto.ItemQueryDTO;
+import com.yhyt.health.model.dto.ItemResultDTO;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+/**
+ * 商品mapper
+ */
+@Repository
+public interface ItemMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(Item record);
+
+    int insertSelective(Item record);
+
+    Item selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(Item record);
+
+    int updateByPrimaryKeyWithBLOBs(Item record);
+
+    int updateByPrimaryKey(Item record);
+
+    /**
+     * 分页查询商品列表
+     * @param itemQueryDTO
+     * @return
+     */
+    List<ItemResultDTO> getItemResultDTOPage(final @Param("ItemQueryDTO") ItemQueryDTO itemQueryDTO);
+
+    /**
+     * 存入页面商品信息
+      * @param itemBody
+     * @return
+     */
+    long insertitemBody(ItemBody itemBody);
+
+    /**
+     * 修改页面商品信息
+     * @param itemBody
+     * @return
+     */
+    int updateitemBodyByPrimaryKeySelective(ItemBody itemBody);
+
+    /**
+     * 获取页面信息
+     * @return
+     */
+    ItemBodyReturnVo getItemMessage(final @Param("itemId") Long itemId);
+
+    /**
+     * 根据指定字段更新商品关联疾病表
+     * @param itemId
+     * @param state
+     * @return
+     */
+    int offshelfItem(final @Param("itemId") Long itemId,
+                     final @Param("state") Byte state);
+
+
+}

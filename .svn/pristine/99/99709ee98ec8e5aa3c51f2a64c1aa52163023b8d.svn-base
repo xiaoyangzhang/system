@@ -1,0 +1,210 @@
+package com.yhyt.health.model.dto;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.yhyt.health.model.ServiceTaskLog;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+public class ServiceDetailDTO implements Serializable {
+
+    private static final long serialVersionUID = -7659891463138106562L;
+    private Long id;
+
+    private List<ServiceTaskLog> taskLogList;
+
+    private String orderNo;
+
+    private Date payTime;
+    private Date refundTime;
+
+    private String hospital;
+    private String department;
+    private Byte orderState;
+    private Byte taskState;
+    private Byte doctorState;
+
+    private String patientUserName;
+    private String patientRealName;
+    private Byte sex;
+    private String mobile;
+    private String cardNo;
+
+    private List<String> picUrls;
+    private String picUrlStr;
+
+    private String diseaseDesc;
+
+    private Long patientId;
+    private Long deptId;
+
+    public Byte getTaskState() {
+        return taskState;
+    }
+
+    public void setTaskState(Byte taskState) {
+        this.taskState = taskState;
+    }
+
+    public Byte getDoctorState() {
+        return doctorState;
+    }
+
+    public void setDoctorState(Byte doctorState) {
+        this.doctorState = doctorState;
+    }
+
+    public Long getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(Long patientId) {
+        this.patientId = patientId;
+    }
+
+    public Long getDeptId() {
+        return deptId;
+    }
+
+    public void setDeptId(Long deptId) {
+        this.deptId = deptId;
+    }
+
+    public String getPicUrlStr() {
+        return picUrlStr;
+    }
+
+    public void setPicUrlStr(String picUrlStr) {
+        this.picUrlStr = picUrlStr;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public List<ServiceTaskLog> getTaskLogList() {
+        return taskLogList;
+    }
+
+    public void setTaskLogList(List<ServiceTaskLog> taskLogList) {
+        this.taskLogList = taskLogList;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
+    }
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone = "GMT+8")
+
+    public Date getPayTime() {
+        return payTime;
+    }
+
+    public void setPayTime(Date payTime) {
+        this.payTime = payTime;
+    }
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone = "GMT+8")
+
+    public Date getRefundTime() {
+        return refundTime;
+    }
+
+    public void setRefundTime(Date refundTime) {
+        this.refundTime = refundTime;
+    }
+
+    public String getHospital() {
+        return hospital;
+    }
+
+    public void setHospital(String hospital) {
+        this.hospital = hospital;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public Byte getOrderState() {
+        return orderState;
+    }
+
+    public void setOrderState(Byte orderState) {
+        this.orderState = orderState;
+    }
+
+    public String getPatientUserName() {
+        if (!StringUtils.isEmpty(patientUserName))
+            return patientUserName.replaceAll("(\\d{3})\\d{4}(\\d{4})","$1****$2");
+        return "";
+
+    }
+
+    public void setPatientUserName(String patientUserName) {
+        this.patientUserName = patientUserName;
+    }
+
+    public String getPatientRealName() {
+        return patientRealName;
+    }
+
+    public void setPatientRealName(String patientRealName) {
+        this.patientRealName = patientRealName;
+    }
+
+    public Byte getSex() {
+        return sex;
+    }
+
+    public void setSex(Byte sex) {
+        this.sex = sex;
+    }
+
+    public String getMobile() {
+        if (!StringUtils.isEmpty(mobile))
+            return mobile.replaceAll("(\\d{3})\\d{4}(\\d{4})","$1****$2");
+        return "";
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+
+    public String getCardNo() {
+        return cardNo;
+    }
+
+    public void setCardNo(String cardNo) {
+        this.cardNo = cardNo;
+    }
+
+    public List<String> getPicUrls() {
+        return picUrls;
+    }
+
+    public void setPicUrls(List<String> picUrls) {
+        this.picUrls = picUrls;
+    }
+
+    public String getDiseaseDesc() {
+        return diseaseDesc;
+    }
+
+    public void setDiseaseDesc(String diseaseDesc) {
+        this.diseaseDesc = diseaseDesc;
+    }
+}

@@ -1,0 +1,209 @@
+package com.yhyt.health.service.api;
+
+import com.yhyt.health.config.PathConfiguration;
+import com.yhyt.health.dao.ItemMapper;
+import com.yhyt.health.dao.SysServiceTaskMapper;
+import com.yhyt.health.model.Item;
+import com.yhyt.health.model.SysServiceTask;
+import com.yhyt.health.model.dto.*;
+import com.yhyt.health.spring.AppResult;
+import com.yhyt.health.util.BusinessException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.*;
+
+/**
+ * @author gsh
+ * @create 2018-01-02 14:07
+ **/
+@Service
+public class ItemApiImpl implements ItemApi{
+
+    @Autowired
+    private SysServiceTaskMapper sysServiceTaskMapper;
+
+    @Autowired
+    private ItemMapper itemMapper;
+
+    @Resource(name = "loadBalanced")
+    private RestTemplate restTemplate;
+
+    @Autowired
+    private PathConfiguration pathConfiguration;
+
+
+    @Override
+    public AppResult getItems(Long departmentId, String doctorState) {
+
+        ItemBodyVo itemBodyVo = new ItemBodyVo();
+        List<ItemListVo> itemListVos = sysServiceTaskMapper.getItems(null, departmentId, Byte.valueOf(doctorState));
+        if (null != itemListVos) {
+            itemBodyVo.setTasks(itemListVos);
+        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("tasks", itemListVos);
+        map.put("noConfirmedCount", sysServiceTaskMapper.getItemCountsByState(null, departmentId, Byte.valueOf("1")));
+        map.put("dealingCount", sysServiceTaskMapper.getItemCountsByState(null, departmentId, Byte.valueOf("2")));
+        map.put("confirmedCount", sysServiceTaskMapper.getItemCountsByState(null, departmentId, Byte.valueOf("3")));
+        AppResult appResult = new AppResult("200", "成功", map);
+        return appResult;
+    }
+
+
+    @Override
+    public AppResult getItem(Long taskId) {
+        ServiceTaskVo serviceTaskVo = sysServiceTaskMapper.getItem(taskId);
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("task", serviceTaskVo);
+        map.put("patientId", serviceTaskVo.getPatientId());
+        AppResult appResult = new AppResult("200", "成功", map);
+        return appResult;
+    }
+
+    @Override
+    @Transactional
+    public AppResult updateItemState(Long taskId, String doctorState,Long userId) {
+        AppResult appResult = new AppResult("200", "成功", null);
+        SysServiceTask sysServiceTask = sysServiceTaskMapper.selectByPrimaryKey(taskId);
+        //如果状态和数据库一致直接返回
+        if (Byte.valueOf(doctorState).equals(sysServiceTask.getDoctorState())) {
+            return appResult;
+        }
+        sysServiceTask.setId(taskId);
+        if ("2".equals(doctorState)){
+            sysServiceTask.setDoctorStartTime(new Date());
+        } else if ("3".equals(doctorState)) {
+            sysServiceTask.setDoctorEndTime(new Date());
+        }
+        sysServiceTask.setDoctorState(Byte.valueOf(doctorState));
+        int result = sysServiceTaskMapper.updateByPrimaryKeySelective(sysServiceTask);
+        if (result <= 0) {
+            appResult = new AppResult("500", "重复操作", null);
+        }
+        //如果是拒绝，则进行退款操作
+        if ("4".equals(doctorState)) {
+            //调用退款接口
+            Map<String, Object> mapPara = new HashMap<String, Object>();
+            mapPara.put("id", sysServiceTask.getOrderId());
+            mapPara.put("refundMsg", "医生拒绝");
+            mapPara.put("client","3");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+            HttpEntity<String> httpEntity = new HttpEntity<String>(headers);
+            try {
+                restTemplate.postForObject(pathConfiguration.getSystemUrl() + "/payment/refund/{id}?refundMsg={refundMsg}" +
+                        "&client={client}" ,httpEntity, AppResult.class,mapPara);
+            } catch (Exception e) {
+                throw new BusinessException("500", "退款失败");
+            }
+        } else if ("2".equals(doctorState)) {
+            Map<String, Object> mapPara = new HashMap<String, Object>();
+            mapPara.put("doctorIdFirst", userId);
+            //查询服务包信息
+            Item item = itemMapper.getItemByTaskId(sysServiceTask.getId());
+            mapPara.put("departmentId", item.getDepartmentId());
+            mapPara.put("orderId", sysServiceTask.getOrderId());
+            mapPara.put("originAmount", item.getPrice());
+            if (null == item.getRatio() || item.getRatio() == 0) {
+                mapPara.put("incomeAmount", 0.00);
+            } else {
+                mapPara.put("incomeAmount", item.getPrice().multiply(new BigDecimal((float)item.getRatio() / 100)));
+            }
+
+            mapPara.put("incomeRatio", item.getRatio());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+            HttpEntity<String> httpEntity = new HttpEntity<String>(headers);
+            appResult = restTemplate.postForObject(pathConfiguration.getSystemUrl() + "/order/orderDepartmentDetail?doctorIdFirst={doctorIdFirst}" +
+                    "&departmentId={departmentId}&orderId={orderId}&originAmount={originAmount}&incomeAmount={incomeAmount}" +
+                    "&type=1&incomeRatio={incomeRatio}" ,httpEntity, AppResult.class,mapPara);
+            if (!"200".equals(appResult.getStatus().getCode())) {
+                throw new BusinessException("500", "科室明细插入失败");
+            }
+        }
+        return appResult;
+    }
+
+    @Override
+    public AppResult genTaskService(Long itemId,Long orderId) {
+        //根据订单查询商品
+        Item item = itemMapper.selectByPrimaryKey(itemId);
+        SysServiceTask sysServiceTask = new SysServiceTask();
+        sysServiceTask.setOrderId(orderId);
+        sysServiceTask.setName(item.getName());
+        sysServiceTask.setUpdateTime(new Date());
+        sysServiceTaskMapper.insertSelective(sysServiceTask);
+        AppResult appResult = new AppResult("200", "成功", null);
+        return appResult;
+    }
+
+    @Override
+    public AppResult getTaskServiceState(Long orderId) {
+        AppResult appResult = null;
+        SysServiceTaskVo sysServiceTaskVo = sysServiceTaskMapper.getSysServiceTask(orderId);
+        //状态列表
+        List<ItemStateVo> itemStateVos = new ArrayList<ItemStateVo>();
+        //待支付
+        if (1 == sysServiceTaskVo.getOrderState()) {
+            itemStateVos.add(new ItemStateVo("服务未启动",null));
+            itemStateVos.add(new ItemStateVo("待支付",sysServiceTaskVo.getOrderTime()));
+            appResult = new AppResult("200", "成功", itemStateVos);
+            return appResult;
+        } else if (2 == sysServiceTaskVo.getOrderState() || 8 == sysServiceTaskVo.getOrderState()) {
+            if (null == sysServiceTaskVo.getDoctorState() || 3 != sysServiceTaskVo.getDoctorState()) {
+                itemStateVos.add(new ItemStateVo("服务进行中", null));
+                itemStateVos.add(new ItemStateVo("支付已完成", sysServiceTaskVo.getPayTime()));
+                if (null == sysServiceTaskVo.getDoctorState()) {
+                    if (null == sysServiceTaskVo.getDiseasedescription() || "".equals(sysServiceTaskVo.getDiseasedescription())) {
+                        itemStateVos.add(new ItemStateVo("待患者完善信息", null));
+                    } else {
+                        itemStateVos.add(new ItemStateVo("患者完善信息", null));
+                        itemStateVos.add(new ItemStateVo("待客服审核订单", null));
+                    }
+                } else if (1 == sysServiceTaskVo.getDoctorState()) {
+                    itemStateVos.add(new ItemStateVo("患者完善信息", null));
+                    itemStateVos.add(new ItemStateVo("客服审核订单", sysServiceTaskVo.getReviewTime()));
+                    itemStateVos.add(new ItemStateVo("待医生确认", null));
+                } else if (2 == sysServiceTaskVo.getDoctorState()) {
+                    itemStateVos.add(new ItemStateVo("患者完善信息", null));
+                    itemStateVos.add(new ItemStateVo("客服审核订单", sysServiceTaskVo.getReviewTime()));
+                    itemStateVos.add(new ItemStateVo("医生确认", sysServiceTaskVo.getDoctorStartTime()));
+                    itemStateVos.add(new ItemStateVo("待医院就诊", null));
+                }
+            } else {
+                itemStateVos.add(new ItemStateVo("服务结束", sysServiceTaskVo.getDoctorEndTime()));
+                itemStateVos.add(new ItemStateVo("支付完成", sysServiceTaskVo.getPayTime()));
+                itemStateVos.add(new ItemStateVo("患者完善信息", null));
+                itemStateVos.add(new ItemStateVo("客服审核订单", sysServiceTaskVo.getReviewTime()));
+                itemStateVos.add(new ItemStateVo("医生确认", sysServiceTaskVo.getDoctorStartTime()));
+                itemStateVos.add(new ItemStateVo("医院就诊", sysServiceTaskVo.getDoctorEndTime()));
+            }
+            appResult = new AppResult("200", "成功", itemStateVos);
+            return appResult;
+        } else if (3 == sysServiceTaskVo.getOrderState()||4 == sysServiceTaskVo.getOrderState()||9 == sysServiceTaskVo.getOrderState()){
+            itemStateVos.add(new ItemStateVo("服务未启动", null));
+            itemStateVos.add(new ItemStateVo("已取消", null));
+        }
+        return appResult;
+    }
+
+    @Override
+    public AppResult getItemCounts(Long departmentId, List<String> doctorState) {
+        List<Byte> doctorStates = new ArrayList<Byte>();
+        Map<String, Object> map = new HashMap<String, Object>();
+        doctorState.stream().forEach(s->{
+            doctorStates.add(Byte.valueOf(s));
+        });
+        map.put("noConfirmedCount", sysServiceTaskMapper.getItemCountsByStates(null, departmentId, doctorStates));
+        AppResult appResult = new AppResult("200", "成功", map);
+        return appResult;
+    }
+}

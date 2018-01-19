@@ -1,0 +1,153 @@
+package com.yhyt.health.model;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.util.Date;
+
+public class SysServiceTask {
+    private Long id;
+
+    private Long orderId;
+
+    private String name;
+
+    private Byte type;
+
+    private Byte doctorState;
+
+    private Byte taskState;
+
+    private Long serviceDoctorId;
+
+    private Date reviewTime;
+
+    private Date updateTime;
+
+    private Date createTime;
+
+    private String operator;
+
+    private Long version;
+
+    private Date doctorStartTime;
+
+    private Date doctorEndTime;
+
+    public String getOperator() {
+        return operator;
+    }
+
+    public void setOperator(String operator) {
+        this.operator = operator;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name == null ? null : name.trim();
+    }
+
+    public Byte getType() {
+        return type;
+    }
+
+    public void setType(Byte type) {
+        this.type = type;
+    }
+
+    public Byte getDoctorState() {
+        return doctorState;
+    }
+
+    public void setDoctorState(Byte doctorState) {
+        this.doctorState = doctorState;
+    }
+
+    public Byte getTaskState() {
+        return taskState;
+    }
+
+    public void setTaskState(Byte taskState) {
+        this.taskState = taskState;
+    }
+
+    public Long getServiceDoctorId() {
+        return serviceDoctorId;
+    }
+
+    public void setServiceDoctorId(Long serviceDoctorId) {
+        this.serviceDoctorId = serviceDoctorId;
+    }
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone = "GMT+8")
+
+    public Date getReviewTime() {
+        return reviewTime;
+    }
+
+    public void setReviewTime(Date reviewTime) {
+        this.reviewTime = reviewTime;
+    }
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone = "GMT+8")
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone = "GMT+8")
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone = "GMT+8")
+
+    public Date getDoctorStartTime() {
+        return doctorStartTime;
+    }
+
+    public void setDoctorStartTime(Date doctorStartTime) {
+        this.doctorStartTime = doctorStartTime;
+    }
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone = "GMT+8")
+
+    public Date getDoctorEndTime() {
+        return doctorEndTime;
+    }
+
+    public void setDoctorEndTime(Date doctorEndTime) {
+        this.doctorEndTime = doctorEndTime;
+    }
+}

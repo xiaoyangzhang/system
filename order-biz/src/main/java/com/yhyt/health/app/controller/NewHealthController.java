@@ -1,0 +1,190 @@
+package com.yhyt.health.app.controller;
+
+
+import com.yhyt.health.constant.Constant;
+import com.yhyt.health.model.Dialog;
+import com.yhyt.health.model.Order;
+import com.yhyt.health.model.OrderDetail;
+import com.yhyt.health.model.OrderVo;
+import com.yhyt.health.result.AppResult;
+import com.yhyt.health.result.ResultStatus;
+import com.yhyt.health.service.OrderDetailService;
+import com.yhyt.health.service.OrderService;
+import com.yhyt.health.service.impl.RedisService;
+import com.yhyt.health.service.impl.SMSService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 登陆、注册、找回密码接口
+ *
+ * @author localadmin
+ */
+@Api(value = "", description = "新健康相关操作")
+@RestController
+public class NewHealthController {
+
+    @Autowired
+    private OrderService orderService;
+    @Autowired
+    private RedisService redisService;
+
+    @Autowired
+    private SMSService sMSService;
+    @Autowired
+    private OrderDetailService orderDetailService;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+
+    @ApiOperation(value = "获取订单列表", notes = "22.获取订单列表")
+    @GetMapping("/patient/orders")
+    public AppResult orders(Long patientId) {
+        AppResult appResult = new AppResult();
+
+        Order der = new Order();
+        if (patientId != null)
+            der.setPatientIdOwner(patientId);
+
+        return orderService.getOrder(der);//调用忘记密码接口,返回app
+    }
+
+
+    @ApiOperation(value = "查看订单详情", notes = "23.查看订单详情")
+    @GetMapping("/patient/orders/{orderId}")
+    public AppResult orders1(@PathVariable String orderId) {
+        AppResult appResult = new AppResult();
+
+        Order der = new Order();
+        der.setId(Long.parseLong(orderId));
+
+        return orderService.getOrder(der);//调用忘记密码接口,返回app
+    }
+
+
+    @ApiOperation(value = "消费服务卡", notes = "24.消费服务卡")
+    @PatchMapping("/patient/orders/{orderId}")
+    public AppResult orders2(@PathVariable String orderId) {
+        AppResult appResult = new AppResult();
+
+        Order der = new Order();
+        der.setId(Long.parseLong(orderId));
+
+        return orderService.getOrderRemainCount(der);//调用忘记密码接口,返回app
+    }
+
+
+    @ApiOperation(value = "下订单", notes = "下订单")
+    @PostMapping("/patient/orders/placeOrder")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "patientId", value = "购买者（病人）Id", paramType = "query", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "goodsId", value = "商品Id", paramType = "query", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "goodsNum", value = "商品数目", paramType = "query", required = false, dataType = "integer", defaultValue = "1"),
+            @ApiImplicitParam(name = "isReceipt", value = "是否开发票", paramType = "query", required = false, dataType = "boolean", defaultValue = "false"),
+            @ApiImplicitParam(name = "itemType",value = "商品类型1:服务卡:2商品",paramType = "query",required = false, dataType = "Byte")
+    })
+    public AppResult placeOrder(@ModelAttribute OrderVo orderVo) {
+        return orderService.placeOrder(orderVo);
+    }
+    
+    
+    
+    @ApiOperation(value = "赠卡", notes = "赠卡")
+    @PostMapping("/patient/orders/giveOrder")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "patientId", value = "购买者（病人）Id", paramType = "query", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "isReceipt", value = "是否开发票", paramType = "query", required = false, dataType = "boolean", defaultValue = "false")
+    })
+    public AppResult giveOrder(@ModelAttribute OrderVo orderVo) {
+    	orderVo.setGoodsId(1);
+    	orderVo.setGoodsNum(1);
+        return orderService.giveOrder(orderVo);
+    }
+
+    @ApiOperation(value = "获取用户卡片列表", notes = "获取用户卡片列表")
+    @GetMapping("/patient/orders/getgoodslist")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "patientId", value = "患者（病人）Id", paramType = "query", required = true, dataType = "string")
+    })
+    public AppResult getGoodsList(String patientId) {
+        return orderDetailService.getPatientOrderDetail(patientId);
+    }
+
+    @ApiOperation(value = "标记卡片已使用", notes = "结束诊后咨询，标记卡片为已使用")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "patientId", value = "当前用户（患者）Id", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "departId", value = "科室Id", paramType = "query", required = true, dataType = "long")
+    })
+    @GetMapping("/patient/endcardusing")
+    public AppResult markCardUsed(long patientId, long departId) {
+        return orderDetailService.markCardUsed(patientId, departId);
+    }
+
+    @ApiOperation(value = "使用卡片", notes = "使用卡片")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "patientId", value = "当前用户（患者）Id", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "departId", value = "科室Id", paramType = "query", required = true, dataType = "long")
+    })
+    @GetMapping("/patient/usecard")
+    public AppResult useCard(long patientId, long departId) {
+        try {
+            return orderDetailService.useCard(patientId, departId);
+        } catch (Exception e) {
+            AppResult appResult = new AppResult();
+            appResult.setStatus(new ResultStatus("201", "使用卡片失败"));
+            return appResult;
+        }
+    }
+
+    @ApiOperation(value = "标记卡片未使用", notes = "结束诊后咨询，标记卡片为未使用")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "patientId", value = "当前用户（患者）Id", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "departId", value = "科室Id", paramType = "query", required = true, dataType = "long")
+    })
+    @GetMapping("/patient/cancelusecard")
+    public AppResult cancelUseCard(long patientId, long departId) {
+        try {
+            return orderDetailService.cancelUseCard(patientId, departId);
+        } catch (Exception e) {
+            AppResult appResult = new AppResult();
+            appResult.setStatus(new ResultStatus("201", "取消使用卡片失败"));
+            return appResult;
+        }
+    }
+
+    @ApiOperation(value = "获取卡片使用的科室和房间号", notes = "获取卡片使用的科室和房间号")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "cardId", value = "卡片Id", paramType = "query", required = true, dataType = "string"),
+    })
+    @GetMapping("/patient/getcarduserecord")
+    public AppResult getCardUseRecord(String cardId){
+        AppResult appResult = new AppResult();
+        OrderDetail orderDetail = orderDetailService.getOrderDetail(cardId);
+        if(orderDetail == null){
+            appResult.setStatus(new ResultStatus("201","卡号不存在"));
+            return appResult;
+        }
+        Dialog dialog = restTemplate.getForObject(Constant.DIALOG_SERVICE+"/dialog/getdialog?departId={1}&patientId={2}",Dialog.class,orderDetail.getDepartId(),orderDetail.getPatientId());
+//        Dialog dialog = restTemplate.getForObject("http://dialog-104/"+"dialog/getdialog?departId={1}&patientId={2}",Dialog.class,orderDetail.getDepartId(),orderDetail.getPatientId());
+        if(dialog == null){
+            appResult.setStatus(new ResultStatus("201","未找到消费记录"));
+            return appResult;
+        }
+        appResult.setStatus(new ResultStatus("200",""));
+        Map<String,Object> body = new HashMap<>();
+        body.put("departId",orderDetail.getDepartId());
+        body.put("dialogId",dialog.getId());
+        body.put("roomId",dialog.getRoomId());
+        appResult.setBody(body);
+        return appResult;
+    }
+}

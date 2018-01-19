@@ -1,0 +1,38 @@
+package com.yhyt.health.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+
+@Component
+//@ConfigurationProperties(prefix = "url")
+public class PathConfiguration {
+
+    @Value("${url.dialogUrl}")
+    private String dialogUrl;
+    @Value("${url.patientUrl}")
+    private String patientUrl;
+    @Value("${url.gateWay}")
+    private String gateWay;
+
+    public String getGateWay() {
+        return gateWay;
+    }
+
+    public String getDialogUrl() {
+        return dialogUrl;
+    }
+
+    public String getPatientUrl() {
+        return patientUrl;
+    }
+
+    @Bean
+    public PathConfiguration getPathConfiguration(){
+        PathConfiguration pathConfiguration = new PathConfiguration();
+        pathConfiguration.dialogUrl=dialogUrl;
+        pathConfiguration.patientUrl=patientUrl;
+        pathConfiguration.gateWay=gateWay;
+        return pathConfiguration;
+    }
+}

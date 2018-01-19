@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.QuestionnaireMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.Questionnaire">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="sub_title" jdbcType="VARCHAR" property="subTitle" />
+    <result column="comment" jdbcType="VARCHAR" property="comment" />
+    <result column="state" jdbcType="TINYINT" property="state" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <resultMap id="questionnaireDTO" type="com.yhyt.health.model.dto.QuestionnaireDTO">
+      <id property="id" column="id"/>
+      <result column="deptName" property="deptName"/>
+      <result column="title" property="title"/>
+      <result column="update_time" property="updateTime"/>
+      <result column="state" property="state"/>
+  </resultMap>
+  <resultMap id="questionnaireAppVo" extends="BaseResultMap" type="com.yhyt.health.model.dto.QuestionnaireAppVo">
+    <result column="questionnaire_id" property="questionnaireId" jdbcType="BIGINT"/>
+  </resultMap>
+  <resultMap id="questionnaireAppAllVo" type="com.yhyt.health.model.dto.QuestionnaireAppAllVo">
+    <result column="department_id" property="departmentId" jdbcType="BIGINT"/>
+    <result column="department_name" property="departmentName" jdbcType="VARCHAR"/>
+    <collection property="questionnaires" ofType="com.yhyt.health.model.dto.QuestionnaireAppVo"
+                resultMap="questionnaireAppVo"/>
+    
+  </resultMap>
+  <resultMap id="questionnaireAppSelf"  extends="BaseResultMap" type="com.yhyt.health.model.dto.QuestionnaireAppSelf">
+    <result column="questionnaire_doctor_patientId" property="questionnaireDoctorPatientId" jdbcType="BIGINT"/>
+    <result column="questionnaire_id" property="questionnaireId" jdbcType="BIGINT"/>
+    <result column="patient_id" property="patientId" jdbcType="BIGINT"/>
+    <result column="patient_name" property="patientName" jdbcType="VARCHAR"/>
+    <result column="is_filled" property="isFilled" jdbcType="VARCHAR"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, title, sub_title, comment, state, update_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from questionnaire
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from questionnaire
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.Questionnaire">
+    insert into questionnaire (id, title, sub_title, 
+      comment, state, update_time
+      )
+    values (#{id,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{subTitle,jdbcType=VARCHAR}, 
+      #{comment,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, #{updateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.Questionnaire" keyProperty="id" useGeneratedKeys="true">
+    insert into questionnaire
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="subTitle != null">
+        sub_title,
+      </if>
+      <if test="comment != null">
+        comment,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="subTitle != null">
+        #{subTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="comment != null">
+        #{comment,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.Questionnaire">
+    update questionnaire
+    <set>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="subTitle != null">
+        sub_title = #{subTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="comment != null">
+        comment = #{comment,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.Questionnaire">
+    update questionnaire
+    set title = #{title,jdbcType=VARCHAR},
+      sub_title = #{subTitle,jdbcType=VARCHAR},
+      comment = #{comment,jdbcType=VARCHAR},
+      state = #{state,jdbcType=TINYINT},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectQuestionnaireListPage" parameterType="map" resultMap="questionnaireDTO">
+    select q.title,q.update_time ,q.state,q.id,group_concat(dd.child_name separator ',') deptName from questionnaire q left join questionnaire_dept qd on q.id=qd.questionnaire_id
+    left join dict_department dd on dd.id=qd.dict_department_id
+    where 1=1
+    <if test="title != null">
+      and title like concat('%', #{title,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="ids!=null">
+      and q.id in (${ids})
+    </if>
+    <!--<if test="type==0">
+      and q.state in (0,1,2)
+    </if>-->
+    <if test="type==-1">
+      and q.state =3
+    </if>
+    and q.state!=4
+    group by q.id
+    order by update_time DESC
+  </select>
+  <select id="selectQuestionnaireList" parameterType="map" resultMap="questionnaireAppVo">
+    SELECT
+    DISTINCT q.*,q.id questionnaire_id
+    FROM questionnaire_doctor_patient qdp
+    LEFT JOIN questionnaire q  ON q.id = qdp.questionnaire_id
+    WHERE q.state='2' AND  qdp.doctor_id = #{userId}
+  </select>
+  <select id="selectQuestionnaireListAll" parameterType="map" resultMap="questionnaireAppAllVo">
+    SELECT DISTINCT
+	qd.dict_department_id department_id, '通用科室' department_name, q.*, q.id questionnaire_id
+    FROM
+    questionnaire q
+    LEFT JOIN questionnaire_dept qd ON qd.questionnaire_id = q.id
+    WHERE q.state='2' AND  qd.dict_department_id ='0'
+    UNION ALL
+    SELECT
+	DISTINCT did.id department_id,did.child_name department_name,q.*,q.id questionnaire_id
+    FROM
+        dept_doctor dd
+    LEFT JOIN doctor dc ON dd.doctor_id = dc.id AND dd.department_id = dc.department_id
+    LEFT JOIN department d ON dc.department_id = d.id
+    LEFT JOIN dept_dict_dept ddd ON d.id = ddd.department_id
+    LEFT JOIN dict_department did ON ddd.dict_department_id = did.id
+    LEFT JOIN questionnaire_dept qd ON ddd.dict_department_id = qd.dict_department_id
+    LEFT JOIN questionnaire q ON qd.questionnaire_id = q.id
+    WHERE q.state='2' AND  dc.id = #{userId}
+  </select>
+  <select id="selectQuestionnaireListAllMore" parameterType="map" resultMap="questionnaireAppAllVo">
+    SELECT
+	CASE WHEN d.id IS NULL THEN 0 ELSE d.id END  department_id,
+	CASE WHEN d.child_name is NULL THEN '通用科室' ELSE d.child_name END department_name,
+	q.*, q.id questionnaire_id
+    FROM
+        questionnaire q
+    LEFT JOIN questionnaire_dept qd ON qd.questionnaire_id = q.id
+    LEFT JOIN dept_dict_dept ddd ON ddd.dict_department_id = qd.dict_department_id
+    LEFT JOIN dict_department d ON d.id = ddd.dict_department_id
+    WHERE
+        q.state = '2'
+  </select>
+  <select id="getMyQuestionnairePatient" parameterType="map" resultMap="questionnaireAppSelf">
+    SELECT
+      q.*,p.id patient_id,p.realname patient_name,qdp.is_filled,qdp.id questionnaire_doctor_patientId
+    FROM
+    questionnaire_doctor_patient qdp
+    LEFT JOIN questionnaire q ON q.id = qdp.questionnaire_id
+    LEFT JOIN patient p ON qdp.patient_id = p.id
+    WHERE  q.state='2' AND qdp.doctor_id = #{userId}
+    <if test="null != type">
+      AND qdp.is_filled =#{type,jdbcType=TINYINT}
+    </if>
+    ORDER BY qdp.create_time DESC
+  </select>
+  <select id="searchQuestionnaire" parameterType="map" resultMap="questionnaireAppVo">
+    SELECT
+        DISTINCT q.*,q.id questionnaire_id
+    FROM
+        questionnaire q
+    LEFT JOIN questionnaire_dept qd ON q.id = qd.questionnaire_id
+    LEFT JOIN dept_dict_dept ddd ON qd.dict_department_id = ddd.dict_department_id
+    LEFT JOIN dept_doctor ddr ON ddd.department_id = ddr.department_id
+    LEFT JOIN dict_department dd ON qd.dict_department_id = dd.id
+    LEFT JOIN questionnaire_disease qdi ON q.id = qdi.questionnaire_id
+    LEFT JOIN dict_disease did ON qdi.dict_disease_id = did.id
+    WHERE  q.state='2'
+    AND (dd.parent_name LIKE concat('%',#{keyWord},'%')
+    OR dd.child_name LIKE concat('%',#{keyWord},'%')
+    OR did.name LIKE concat('%',#{keyWord},'%')
+    OR q.title LIKE concat('%',#{keyWord},'%'))
+  </select>
+    <select id="getQuestionnaireBySendId" parameterType="Long" resultMap="BaseResultMap">
+        select
+        q.*
+        from questionnaire q LEFT JOIN questionnaire_doctor_patient qdp ON q.id = qdp.questionnaire_id
+        where qdp.id = #{questionnaireDoctorPatientId}
+    </select>
+</mapper>

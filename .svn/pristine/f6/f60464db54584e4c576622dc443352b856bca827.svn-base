@@ -1,0 +1,60 @@
+package com.yhyt.health.dao;
+
+import com.yhyt.health.model.SysServiceTask;
+import com.yhyt.health.model.dto.CustomerServiceDTO;
+import com.yhyt.health.model.dto.ServiceDetailDTO;
+import com.yhyt.health.model.dto.TaskStatisticsDTO;
+import com.yhyt.health.model.query.CustomerServiceQuery;
+
+import java.util.List;
+import com.yhyt.health.model.dto.ItemListVo;
+import com.yhyt.health.model.dto.ServiceTaskVo;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Date;
+
+public interface SysServiceTaskMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(SysServiceTask record);
+
+    int insertSelective(SysServiceTask record);
+
+    SysServiceTask selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(SysServiceTask record);
+
+    int updateByPrimaryKey(SysServiceTask record);
+
+    /**
+     * 客服任务列表
+     * @param query
+     * @return
+     */
+    List<CustomerServiceDTO> selectServiceListPage(CustomerServiceQuery query);
+
+    /**
+     * 客服任务详情
+     * @param id
+     * @return
+     */
+    ServiceDetailDTO selectById(Long id);
+    TaskStatisticsDTO selectStatisticsCount(CustomerServiceQuery query);
+
+    /**
+     * 一键释放
+     * @param operator
+     * @return
+     */
+    int releaseTaskByOperator(String operator,Byte state);
+
+    List<SysServiceTask> selectByOperator(String operator);
+
+    List<ItemListVo> getItems(@Param("patientId") Long patientId,@Param("departmentId") Long departmentId ,@Param("doctorState") Byte doctorState);
+
+    Long getItemCountsByState(@Param("patientId") Long patientId,@Param("departmentId") Long departmentId ,@Param("doctorState") Byte doctorState);
+
+    ServiceTaskVo getItem(@Param("id") Long id);
+
+
+}

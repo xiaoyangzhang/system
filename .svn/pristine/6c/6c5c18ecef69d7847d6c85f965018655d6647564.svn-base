@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhyt.health.dao.OrderDetailMapper">
+  <resultMap id="BaseResultMap" type="com.yhyt.health.model.OrderDetail">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="order_card_no" jdbcType="VARCHAR" property="orderNo" />
+    <result column="patient_id" jdbcType="BIGINT" property="patientId" />
+    <result column="oder_id" jdbcType="BIGINT" property="oderId" />
+    <result column="department_id" jdbcType="BIGINT" property="departId" />
+    <result column="consume_amount" jdbcType="INTEGER" property="consumeAmount" />
+    <result column="type" jdbcType="TINYINT" property="type" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="is_givenforfree" jdbcType="VARCHAR" property="isGivenForFree" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, order_card_no, patient_id, oder_id,department_id, consume_amount, type, create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from order_detail
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from order_detail
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.yhyt.health.model.OrderDetail" keyProperty="id">
+    insert into order_detail (id, order_card_no, patient_id,
+      oder_id, department_id, consume_amount, type,
+      create_time)
+    values (#{id,jdbcType=BIGINT}, #{orderNo,jdbcType=VARCHAR}, #{patientId,jdbcType=BIGINT}, 
+      #{oderId,jdbcType=BIGINT},#{departId,jdbcType=BIGINT}, #{consumeAmount,jdbcType=INTEGER}, #{type,jdbcType=TINYINT},
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+     <insert id="insertForfree" parameterType="com.yhyt.health.model.Order" keyProperty="id">
+         insert into order_detail (id, order_card_no, patient_id,
+      oder_id, department_id, consume_amount, type,
+      create_time,is_givenforfree)
+    values (#{id,jdbcType=BIGINT}, #{orderNo,jdbcType=VARCHAR}, #{patientId,jdbcType=BIGINT}, 
+      #{oderId,jdbcType=BIGINT},#{departId,jdbcType=BIGINT}, #{consumeAmount,jdbcType=INTEGER}, #{type,jdbcType=TINYINT},
+      #{createTime,jdbcType=TIMESTAMP},'2')
+  </insert>
+  <insert id="insertSelective" parameterType="com.yhyt.health.model.OrderDetail">
+    insert into order_detail
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="orderNo != null">
+        order_card_no,
+      </if>
+      <if test="patientId != null">
+        patient_id,
+      </if>
+      <if test="oderId != null">
+        oder_id,
+      </if>
+      <if test="departId != null">
+        department_id,
+      </if>
+      <if test="consumeAmount != null">
+        consume_amount,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="orderNo != null">
+        #{orderNo,jdbcType=VARCHAR},
+      </if>
+      <if test="patientId != null">
+        #{patientId,jdbcType=BIGINT},
+      </if>
+      <if test="oderId != null">
+        #{oderId,jdbcType=BIGINT},
+      </if>
+      <if test="departId != null">
+        #{departId,jdbcType=BIGINT},
+      </if>
+      <if test="consumeAmount != null">
+        #{consumeAmount,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yhyt.health.model.OrderDetail">
+    update order_detail
+    <set>
+      <if test="orderNo != null">
+        order_card_no = #{orderNo,jdbcType=VARCHAR},
+      </if>
+      <if test="patientId != null">
+        patient_id = #{patientId,jdbcType=BIGINT},
+      </if>
+      <if test="oderId != null">
+        oder_id = #{oderId,jdbcType=BIGINT},
+      </if>
+      <if test="departId != null">
+        department_id = #{departId,jdbcType=BIGINT},
+      </if>
+      <if test="consumeAmount != null">
+        consume_amount = #{consumeAmount,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        `type` = #{type,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yhyt.health.model.OrderDetail">
+    update order_detail
+    set order_card_no = #{orderNo,jdbcType=VARCHAR},
+      patient_id = #{patientId,jdbcType=BIGINT},
+      oder_id = #{oderId,jdbcType=BIGINT},
+      department_id = #{departId,jdbcType=BIGINT},
+      consume_amount = #{consumeAmount,jdbcType=INTEGER},
+      `type` = #{type,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="getUserOrderDetails" parameterType="java.util.Map" resultMap="BaseResultMap">
+    select * from order_detail
+    where patient_id = #{patientId,jdbcType=VARCHAR}
+    <if test="type != null">
+      AND type = #{type,jdbcType=TINYINT}
+    </if>
+    <if test="departId != null">
+      AND department_id = #{departId, jdbcType=VARCHAR}
+    </if>
+    ORDER BY create_time DESC
+  </select>
+  
+  <update id="updateAndCheck" >
+    update order_detail 
+    <set >
+      <if test="param1.type != null" >
+        type = #{0.type,jdbcType=TINYINT},
+      </if>
+    </set>
+    <trim prefix="WHERE" prefixOverrides="AND|OR">
+      	<if test="param2.orderId!=null">and oder_id = #{1.orderId,jdbcType=BIGINT}</if>
+    	<if test="param2.type!=null">and type = #{1.type,jdbcType=TINYINT}</if>
+    </trim>
+  </update>
+  
+  <select id="findPersistableList" parameterType="java.util.Map" resultMap="BaseResultMap">
+  	select <include refid="Base_Column_List" /> from order_detail t
+  	<include refid="search_patientcomplaint"></include> 
+  </select>
+  
+    <!-- 账户列表搜索条件  -->
+  <sql id="search_patientcomplaint">
+    <trim prefix="WHERE" prefixOverrides="AND|OR">
+      	<if test="id!=null">and t.id = #{id,jdbcType=BIGINT}</if>
+    	<if test="orderId!=null">and t.oder_id = #{orderId,jdbcType=BIGINT}</if>
+    </trim>
+  </sql>
+</mapper>

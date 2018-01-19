@@ -1,0 +1,139 @@
+package com.yhyt.health.controller;
+
+
+import com.alibaba.fastjson.JSON;
+import com.yhyt.health.model.Item;
+import com.yhyt.health.model.ItemClassification;
+import com.yhyt.health.model.dto.ItemBody;
+import com.yhyt.health.model.dto.ItemBodyReturnVo;
+import com.yhyt.health.model.dto.ItemQueryDTO;
+import com.yhyt.health.model.dto.ItemResultDTO;
+import com.yhyt.health.service.ItemClassificationService;
+import com.yhyt.health.service.ItemService;
+import com.yhyt.health.spring.AppResult;
+import com.yhyt.health.util.Page;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+/**
+ * @author wangzhan@cis.com.cn
+ * @version v1.0
+ * @project business-biz
+ * @Description
+ * @encoding UTF-8
+ * @date 2018/1/2
+ * @time 下午1:45
+ * @修改记录 <pre>
+ * 版本       修改人         修改时间         修改内容描述
+ * --------------------------------------------------
+ * <p>
+ *     v1.0 商品管理 系统后台
+ * --------------------------------------------------
+ * </pre>
+ */
+
+@Api(value="",description ="商品")
+@RestController
+@RequestMapping("/itemManage/")
+public class ItemController {
+    private static final Logger log = LoggerFactory.getLogger(ItemController.class);
+
+    @Resource
+    private ItemClassificationService itemClassificationService;
+
+    @Resource
+    private ItemService itemService;
+
+    /*
+     * 商品分类的下拉列表接口
+     * 入参 ： 无
+     * 出参 ： 分类的id  name的 列表
+     */
+    @RequestMapping(value = "getItemClassification",method = {RequestMethod.POST,RequestMethod.GET})
+    public List<ItemClassification> getItemClassification(){
+
+        return itemClassificationService.getItemClassification();
+    }
+
+    //商品的分页查询接口
+        //入餐 ： 商品编号  商品名称  所属机构  商品分类  发布时间begin   发布时间end   pageNo   pageSize
+        //出参 ：Page对象  内部列表包括 商品id 商品编号  商品名称
+        //                商品价格  商品分类  所属机构  商品描述 置顶排序 创建人  发布时间
+
+    @RequestMapping(value = "queryItemListPage",method = {RequestMethod.POST,RequestMethod.GET})
+    public Page<ItemResultDTO> queryQuestionnaireListPage(@RequestParam("itemQueryDTO") String itemQueryDTO){
+        log.info("***************************************************");
+        log.info(""+itemQueryDTO);
+        ItemQueryDTO itemQuery = JSON.parseObject(itemQueryDTO,ItemQueryDTO.class);
+        return itemService.getItemResultDTOPage(itemQuery);
+    }
+
+    //点击商品编辑的接口 （根据商品id查询商品信息接口）
+        //入餐 ： 商品id
+        //出餐 ： 商品编号  商品分类 商品价格 分成比例 发布端 发布位置 是否发布全部医院
+        //       医院id＋医院名称的列表  是否发布全部科室    科室id＋科室名称的列表
+        //       商品描述  商品图片列表   是否置顶   url   商品内容详情  上架时间（年月日时）
+        //       下架时间（年月日时）   操作日志 （时间   操作人   描述）列表  有效期
+       //       商品列表图    商品详情top图
+    @RequestMapping(value = "getItemMessage/{id}",method = {RequestMethod.POST,RequestMethod.GET})
+    public ItemBodyReturnVo getItemMessage(@PathVariable("id") long id){
+        return itemService.getItemMessage(id);
+    }
+
+
+
+    //商品编辑/新增 的保存接口
+        //商品id  商品编号  商品分类 商品价格 分成比例 发布端 发布位置 是否发布全部医院
+        //       医院id＋医院名称的列表  是否发布全部科室    科室id＋科室名称的列表
+        //       商品描述  商品图片列表   是否置顶   url   商品内容详情  上架时间（年月日时）
+        //       下架时间（年月日时）   操作日志 （时间   操作人   描述）列表
+    @RequestMapping(value = "addItem",method = {RequestMethod.POST,RequestMethod.GET})
+    public AppResult addItem(@RequestBody ItemBody itemBody ){
+        return itemService.insertOrUpdateItemAndDisease(itemBody);
+    }
+
+    /**
+     * 上架商品，需要校验商品的必填项
+     * @param itemId
+     * @param state
+     * @return
+     */
+    @RequestMapping(value = "shelvesItem",method = {RequestMethod.POST,RequestMethod.GET})
+    public AppResult shelvesItem(@RequestParam Long itemId,
+                                 @RequestParam Byte state,
+                                 @RequestParam String currentName){
+        return itemService.shelvesItem(itemId,state,currentName);
+    }
+
+
+    //商品下架
+        //入参 ： 商品id    状态
+        //出参 ： AppResult 状态对象
+    @RequestMapping(value = "offshelfItem",method = {RequestMethod.POST,RequestMethod.GET})
+    public AppResult offshelfItem(@RequestParam Long itemId,
+                                  @RequestParam Byte state,
+                                  @RequestParam String currentName){
+        return itemService.offshelfItem(itemId,state,currentName);
+    }
+    @ApiIgnore
+    @GetMapping("/dept/{deptId}")
+    public List<ItemResultDTO> selectItemsBelongDept(@PathVariable("deptId")Long deptId){
+        return itemService.getItemDTOsBelongDept(deptId);
+    }
+
+    @ApiIgnore
+    @PatchMapping("/update/state")
+    public AppResult updateItemState(@RequestBody Item item){
+        AppResult appResult = new AppResult();
+        itemService.updateItemState(item);
+        return appResult;
+    }
+}
